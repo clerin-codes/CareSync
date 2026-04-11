@@ -1,0 +1,31 @@
+const express = require("express");
+const cors = require("cors");
+const morgan = require("morgan");
+const rateLimit = require("express-rate-limit");
+const proxyRoutes = require("./routes/proxyRoutes");
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+app.use(morgan("dev"));
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: {
+    message: "Too many requests, please try again later"
+  }
+});
+
+app.use(limiter);
+
+app.get("/health", (req, res) => {
+  res.json({
+    message: "API Gateway is running"
+  });
+});
+
+app.use("/api", proxyRoutes);
+
+module.exports = app;
