@@ -6,6 +6,7 @@ const router = express.Router();
 
 const fixRequestBody = (proxyReq, req) => {
   if (!req.body || !Object.keys(req.body).length) return;
+  if (req.method === "GET") return;
 
   const bodyData = JSON.stringify(req.body);
 
@@ -14,6 +15,7 @@ const fixRequestBody = (proxyReq, req) => {
   proxyReq.write(bodyData);
 };
 
+/* ================= AUTH SERVICE ================= */
 router.use(
   "/auth",
   createProxyMiddleware({
@@ -25,13 +27,13 @@ router.use(
       },
       error: (err, req, res) => {
         console.error("Auth proxy error:", err.message);
-        res.status(500).json({ message: "Gateway proxy error" });
+        res.status(500).json({ message: "Gateway proxy error - Auth Service" });
       }
     }
   })
 );
 
-// Patient service - protected
+/* ================= PATIENT SERVICE ================= */
 router.use(
   "/patients",
   protect,
@@ -44,12 +46,16 @@ router.use(
     on: {
       proxyReq: (proxyReq, req) => {
         fixRequestBody(proxyReq, req);
+      },
+      error: (err, req, res) => {
+        console.error("Patient proxy error:", err.message);
+        res.status(500).json({ message: "Gateway proxy error - Patient Service" });
       }
     }
   })
 );
 
-// Doctor service - protected
+/* ================= DOCTOR SERVICE ================= */
 router.use(
   "/doctors",
   protect,
@@ -62,12 +68,16 @@ router.use(
     on: {
       proxyReq: (proxyReq, req) => {
         fixRequestBody(proxyReq, req);
+      },
+      error: (err, req, res) => {
+        console.error("Doctor proxy error:", err.message);
+        res.status(500).json({ message: "Gateway proxy error - Doctor Service" });
       }
     }
   })
 );
 
-// Appointment service - protected
+/* ================= APPOINTMENT SERVICE ================= */
 router.use(
   "/appointments",
   protect,
@@ -80,12 +90,16 @@ router.use(
     on: {
       proxyReq: (proxyReq, req) => {
         fixRequestBody(proxyReq, req);
+      },
+      error: (err, req, res) => {
+        console.error("Appointment proxy error:", err.message);
+        res.status(500).json({ message: "Gateway proxy error - Appointment Service" });
       }
     }
   })
 );
 
-// Payment service - protected
+/* ================= PAYMENT SERVICE ================= */
 router.use(
   "/payments",
   protect,
@@ -98,12 +112,16 @@ router.use(
     on: {
       proxyReq: (proxyReq, req) => {
         fixRequestBody(proxyReq, req);
+      },
+      error: (err, req, res) => {
+        console.error("Payment proxy error:", err.message);
+        res.status(500).json({ message: "Gateway proxy error - Payment Service" });
       }
     }
   })
 );
 
-// Notification service - admin only
+/* ================= NOTIFICATION SERVICE ================= */
 router.use(
   "/notifications",
   protect,
@@ -117,12 +135,16 @@ router.use(
     on: {
       proxyReq: (proxyReq, req) => {
         fixRequestBody(proxyReq, req);
+      },
+      error: (err, req, res) => {
+        console.error("Notification proxy error:", err.message);
+        res.status(500).json({ message: "Gateway proxy error - Notification Service" });
       }
     }
   })
 );
 
-// Telemedicine service - protected
+/* ================= TELEMEDICINE SERVICE ================= */
 router.use(
   "/telemedicine",
   protect,
@@ -135,6 +157,10 @@ router.use(
     on: {
       proxyReq: (proxyReq, req) => {
         fixRequestBody(proxyReq, req);
+      },
+      error: (err, req, res) => {
+        console.error("Telemedicine proxy error:", err.message);
+        res.status(500).json({ message: "Gateway proxy error - Telemedicine Service" });
       }
     }
   })
