@@ -4,14 +4,12 @@ const generateToken = (user) => {
   return jwt.sign(
     {
       id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role
+      role: user.role,
+      email: user.email || null,
+      fullName: user.fullName || null,
     },
     process.env.JWT_SECRET,
-    {
-      expiresIn: process.env.JWT_EXPIRES_IN || "1d"
-    }
+    { expiresIn: "7d" }
   );
 };
 
