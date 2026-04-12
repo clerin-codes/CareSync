@@ -3,7 +3,8 @@ const {
   getMyProfile,
   createMyProfile,
   updateMyProfile,
-  getAllPatients
+  getAllPatients,
+  updatePatientStatus
 } = require("../controllers/patientController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 
@@ -14,5 +15,6 @@ router.get("/me", protect, authorize("patient"), getMyProfile);
 router.put("/me", protect, authorize("patient"), updateMyProfile);
 
 router.get("/", protect, authorize("admin"), getAllPatients);
+router.put("/:id/status", protect, authorize("admin"), updatePatientStatus);
 
 module.exports = router;

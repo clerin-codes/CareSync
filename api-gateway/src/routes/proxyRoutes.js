@@ -15,7 +15,6 @@ const fixRequestBody = (proxyReq, req) => {
   proxyReq.write(bodyData);
 };
 
-/* ================= AUTH SERVICE ================= */
 router.use(
   "/auth",
   createProxyMiddleware({
@@ -33,16 +32,12 @@ router.use(
   })
 );
 
-/* ================= PATIENT SERVICE ================= */
 router.use(
   "/patients",
   protect,
   createProxyMiddleware({
-    target: process.env.PATIENT_SERVICE_URL,
+    target: `${process.env.PATIENT_SERVICE_URL}/api/patients`,
     changeOrigin: true,
-    pathRewrite: {
-      "^/patients": "/api/patients"
-    },
     on: {
       proxyReq: (proxyReq, req) => {
         fixRequestBody(proxyReq, req);
@@ -55,16 +50,12 @@ router.use(
   })
 );
 
-/* ================= DOCTOR SERVICE ================= */
 router.use(
   "/doctors",
   protect,
   createProxyMiddleware({
-    target: process.env.DOCTOR_SERVICE_URL,
+    target: `${process.env.DOCTOR_SERVICE_URL}/api/doctors`,
     changeOrigin: true,
-    pathRewrite: {
-      "^/doctors": "/api/doctors"
-    },
     on: {
       proxyReq: (proxyReq, req) => {
         fixRequestBody(proxyReq, req);
@@ -77,16 +68,12 @@ router.use(
   })
 );
 
-/* ================= APPOINTMENT SERVICE ================= */
 router.use(
   "/appointments",
   protect,
   createProxyMiddleware({
-    target: process.env.APPOINTMENT_SERVICE_URL,
+    target: `${process.env.APPOINTMENT_SERVICE_URL}/api/appointments`,
     changeOrigin: true,
-    pathRewrite: {
-      "^/appointments": "/api/appointments"
-    },
     on: {
       proxyReq: (proxyReq, req) => {
         fixRequestBody(proxyReq, req);
@@ -99,16 +86,12 @@ router.use(
   })
 );
 
-/* ================= PAYMENT SERVICE ================= */
 router.use(
   "/payments",
   protect,
   createProxyMiddleware({
-    target: process.env.PAYMENT_SERVICE_URL,
+    target: `${process.env.PAYMENT_SERVICE_URL}/api/payments`,
     changeOrigin: true,
-    pathRewrite: {
-      "^/payments": "/api/payments"
-    },
     on: {
       proxyReq: (proxyReq, req) => {
         fixRequestBody(proxyReq, req);
@@ -121,17 +104,13 @@ router.use(
   })
 );
 
-/* ================= NOTIFICATION SERVICE ================= */
 router.use(
   "/notifications",
   protect,
   authorizeRoles("admin"),
   createProxyMiddleware({
-    target: process.env.NOTIFICATION_SERVICE_URL,
+    target: `${process.env.NOTIFICATION_SERVICE_URL}/api/notifications`,
     changeOrigin: true,
-    pathRewrite: {
-      "^/notifications": "/api/notifications"
-    },
     on: {
       proxyReq: (proxyReq, req) => {
         fixRequestBody(proxyReq, req);
@@ -144,16 +123,12 @@ router.use(
   })
 );
 
-/* ================= TELEMEDICINE SERVICE ================= */
 router.use(
   "/telemedicine",
   protect,
   createProxyMiddleware({
-    target: process.env.TELEMEDICINE_SERVICE_URL,
+    target: `${process.env.TELEMEDICINE_SERVICE_URL}/api/telemedicine`,
     changeOrigin: true,
-    pathRewrite: {
-      "^/telemedicine": "/api/telemedicine"
-    },
     on: {
       proxyReq: (proxyReq, req) => {
         fixRequestBody(proxyReq, req);
