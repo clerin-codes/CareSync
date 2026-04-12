@@ -5,70 +5,104 @@ const generateToken = require("../utils/generateToken");
 // Register patient or doctor
 const register = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { fullName, email, phone, password, role } = req.body;
 
-    if (!name || !email || !password || !role) {
-      return res.status(400).json({ message: "All fields are required" });
+    if (!fullName || !password || !role || (!email && !phone)) {
+      return res.status(400).json({
+        message: "Full name, password, role, and email or phone are required",
+      });
     }
 
-    if (!["patient", "doctor"].includes(role)) {
+    if (!["patient", "doctor", "responder"].includes(role)) {
       return res.status(400).json({ message: "Invalid role" });
     }
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
+    if (email) {
+      const existingEmailUser = await User.findOne({ email: email.toLowerCase() });
+      if (existingEmailUser) {
+        return res.status(400).json({ message: "Email already in use" });
+      }
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    if (phone) {
+      const existingPhoneUser = await User.findOne({ phone });
+      if (existingPhoneUser) {
+        return res.status(400).json({ message: "Phone already in use" });
+      }
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
 
     const user = await User.create({
-      name,
-      email,
-      password: hashedPassword,
+      fullName,
+      email: email ? email.toLowerCase() : undefined,
+      phone: phone || undefined,
+      passwordHash,
       role,
-      isVerified: role === "doctor" ? false : true
+      isVerified: role === "doctor" ? false : true,
+      status: role === "doctor" ? "PENDING" : "ACTIVE",
+      isActive: true,
     });
 
     return res.status(201).json({
       message: `${role} registered successfully`,
       user: {
         id: user._id,
-        name: user.name,
+        fullName: user.fullName,
         email: user.email,
+        phone: user.phone,
         role: user.role,
-        isVerified: user.isVerified
-      }
+        isVerified: user.isVerified,
+        status: user.status,
+        isActive: user.isActive,
+      },
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
 };
 
-// Login
+// Login with email or phone
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, phone, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
+    if ((!email && !phone) || !password) {
+      return res.status(400).json({
+        message: "Email or phone and password are required",
+      });
     }
 
-    const user = await User.findOne({ email });
+    const query = email
+      ? { email: email.toLowerCase() }
+      : { phone };
+
+    const user = await User.findOne(query);
+
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    if (user.role === "doctor" && !user.isVerified) {
+    if (!user.isActive || user.status === "SUSPENDED") {
       return res.status(403).json({
-        message: "Doctor account is pending admin verification"
+        message: "Your account is inactive or suspended",
       });
     }
+
+    if (user.role === "doctor" && !user.isVerified) {
+      return res.status(403).json({
+        message: "Doctor account is pending admin verification",
+      });
+    }
+
+    user.lastLoginAt = new Date();
+    await user.save();
 
     const token = generateToken(user);
 
@@ -77,11 +111,14 @@ const login = async (req, res) => {
       token,
       user: {
         id: user._id,
-        name: user.name,
+        fullName: user.fullName,
         email: user.email,
+        phone: user.phone,
         role: user.role,
-        isVerified: user.isVerified
-      }
+        isVerified: user.isVerified,
+        status: user.status,
+        isActive: user.isActive,
+      },
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -91,34 +128,55 @@ const login = async (req, res) => {
 // Admin creates admin manually or by seed
 const createAdmin = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { fullName, email, phone, password } = req.body;
 
-    const existingAdmin = await User.findOne({ email });
-    if (existingAdmin) {
-      return res.status(400).json({ message: "Admin already exists" });
+    if (!fullName || !password || (!email && !phone)) {
+      return res.status(400).json({
+        message: "Full name, password, and email or phone are required",
+      });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    if (email) {
+      const existingEmailUser = await User.findOne({ email: email.toLowerCase() });
+      if (existingEmailUser) {
+        return res.status(400).json({ message: "Email already in use" });
+      }
+    }
+
+    if (phone) {
+      const existingPhoneUser = await User.findOne({ phone });
+      if (existingPhoneUser) {
+        return res.status(400).json({ message: "Phone already in use" });
+      }
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
 
     const admin = await User.create({
-      name,
-      email,
-      password: hashedPassword,
+      fullName,
+      email: email ? email.toLowerCase() : undefined,
+      phone: phone || undefined,
+      passwordHash,
       role: "admin",
-      isVerified: true
+      isVerified: true,
+      isActive: true,
+      status: "ACTIVE",
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Admin created successfully",
       admin: {
         id: admin._id,
-        name: admin.name,
+        fullName: admin.fullName,
         email: admin.email,
-        role: admin.role
-      }
+        phone: admin.phone,
+        role: admin.role,
+        isVerified: admin.isVerified,
+        status: admin.status,
+      },
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -138,17 +196,21 @@ const verifyDoctor = async (req, res) => {
     }
 
     doctor.isVerified = true;
+    doctor.status = "ACTIVE";
+
     await doctor.save();
 
     return res.status(200).json({
       message: "Doctor verified successfully",
       doctor: {
         id: doctor._id,
-        name: doctor.name,
+        fullName: doctor.fullName,
         email: doctor.email,
+        phone: doctor.phone,
         role: doctor.role,
-        isVerified: doctor.isVerified
-      }
+        isVerified: doctor.isVerified,
+        status: doctor.status,
+      },
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -159,5 +221,5 @@ module.exports = {
   register,
   login,
   createAdmin,
-  verifyDoctor
+  verifyDoctor,
 };
