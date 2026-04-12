@@ -4,24 +4,36 @@ const patientSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
-      unique: true
+      unique: true,
     },
-    name: {
+
+    patientId: {
       type: String,
-      required: [true, "Name is required"],
-      trim: true
+      required: true,
+      unique: true,
+      trim: true,
     },
+
+    fullName: {
+      type: String,
+      required: [true, "Full name is required"],
+      trim: true,
+    },
+
     email: {
       type: String,
       required: [true, "Email is required"],
       trim: true,
-      lowercase: true
+      lowercase: true,
     },
-    profilePhoto: {
+
+    avatarUrl: {
       type: String,
-      default: ""
+      default: "",
     },
+
     phone: {
       type: String,
       default: "",
@@ -29,46 +41,67 @@ const patientSchema = new mongoose.Schema(
         validator: function (value) {
           return value === "" || /^[0-9]{10}$/.test(value);
         },
-        message: "Phone number must be 10 digits"
-      }
+        message: "Phone number must be 10 digits",
+      },
     },
-    age: {
-      type: Number,
-      min: [0, "Age cannot be negative"],
-      max: [120, "Age cannot exceed 120"],
-      default: null
+
+    dob: {
+      type: Date,
+      default: null,
     },
+
     gender: {
       type: String,
       enum: {
         values: ["male", "female", "other", ""],
-        message: "Invalid gender value"
+        message: "Invalid gender value",
       },
-      default: ""
+      default: "",
     },
-    address: {
+
+    nic: {
       type: String,
       default: "",
-      trim: true
+      trim: true,
     },
+
+    address: {
+      district: {
+        type: String,
+        default: "",
+        trim: true,
+      },
+      city: {
+        type: String,
+        default: "",
+        trim: true,
+      },
+      line1: {
+        type: String,
+        default: "",
+        trim: true,
+      },
+    },
+
     bloodGroup: {
       type: String,
       enum: {
         values: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", ""],
-        message: "Invalid blood group"
+        message: "Invalid blood group",
       },
-      default: ""
+      default: "",
     },
+
     emergencyContact: {
       name: {
         type: String,
         default: "",
-        trim: true
+        trim: true,
       },
       relationship: {
         type: String,
         default: "",
-        trim: true
+        trim: true,
       },
       phone: {
         type: String,
@@ -77,28 +110,72 @@ const patientSchema = new mongoose.Schema(
           validator: function (value) {
             return value === "" || /^[0-9]{10}$/.test(value);
           },
-          message: "Emergency contact phone must be 10 digits"
-        }
-      }
+          message: "Emergency contact phone must be 10 digits",
+        },
+      },
     },
+
     medicalHistory: {
-      allergies: { type: [String], default: [] },
-      chronicDiseases: { type: [String], default: [] },
-      medications: { type: [String], default: [] },
-      surgeries: { type: [String], default: [] },
-      notes: { type: String, default: "" }
+      allergies: {
+        type: [String],
+        default: [],
+      },
+      chronicDiseases: {
+        type: [String],
+        default: [],
+      },
+      medications: {
+        type: [String],
+        default: [],
+      },
+      surgeries: {
+        type: [String],
+        default: [],
+      },
+      notes: {
+        type: String,
+        default: "",
+        trim: true,
+      },
     },
+
+    heightCm: {
+      type: Number,
+      min: [30, "Height cannot be less than 30 cm"],
+      max: [250, "Height cannot exceed 250 cm"],
+      default: null,
+    },
+
+    weightKg: {
+      type: Number,
+      min: [2, "Weight cannot be less than 2 kg"],
+      max: [300, "Weight cannot exceed 300 kg"],
+      default: null,
+    },
+
+    profileStrength: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
+    },
+
     status: {
       type: String,
       enum: {
         values: ["active", "inactive", "blocked"],
-        message: "Invalid patient status"
+        message: "Invalid patient status",
       },
-      default: "active"
-    }
+      default: "active",
+    },
+
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
-    timestamps: true
+    timestamps: true,
   }
 );
 
