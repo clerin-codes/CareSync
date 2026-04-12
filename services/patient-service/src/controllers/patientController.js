@@ -2,6 +2,7 @@ const Patient = require("../models/Patient");
 const generatePatientId = require("../utils/generatePatientId");
 const calculateProfileStrength = require("../utils/calculateProfileStrength");
 const uploadDocumentToCloudinary = require("../services/uploadDocumentToCloudinary");
+const cloudinary = require("../config/cloudinary");
 
 const getMyProfile = async (req, res) => {
   try {
@@ -41,27 +42,22 @@ const createMyProfile = async (req, res) => {
       patientId,
       fullName: req.user.fullName,
       email: req.user.email,
-
       avatarUrl: req.body.avatarUrl || "",
       phone: req.body.phone || "",
       dob: req.body.dob || null,
       gender: req.body.gender || "",
       nic: req.body.nic || "",
-
       address: {
         district: req.body.address?.district || "",
         city: req.body.address?.city || "",
         line1: req.body.address?.line1 || "",
       },
-
       bloodGroup: req.body.bloodGroup || "",
-
       emergencyContact: {
         name: req.body.emergencyContact?.name || "",
         relationship: req.body.emergencyContact?.relationship || "",
         phone: req.body.emergencyContact?.phone || "",
       },
-
       medicalHistory: {
         allergies: req.body.medicalHistory?.allergies || [],
         chronicDiseases: req.body.medicalHistory?.chronicDiseases || [],
@@ -69,7 +65,6 @@ const createMyProfile = async (req, res) => {
         surgeries: req.body.medicalHistory?.surgeries || [],
         notes: req.body.medicalHistory?.notes || "",
       },
-
       heightCm: req.body.heightCm ?? null,
       weightKg: req.body.weightKg ?? null,
       status: "active",
@@ -173,10 +168,63 @@ const updateMyProfile = async (req, res) => {
 
 const getAllPatients = async (req, res) => {
   try {
-    const patients = await Patient.find({ isDeleted: false }).sort({ createdAt: -1 });
+    const {
+      search = "",
+      status,
+      bloodGroup,
+      page = 1,
+      limit = 10,
+      sortBy = "createdAt",
+      order = "desc",
+    } = req.query;
+
+    const query = { isDeleted: false };
+
+    if (status) {
+      query.status = status;
+    }
+
+    if (bloodGroup) {
+      query.bloodGroup = bloodGroup;
+    }
+
+    if (search) {
+      query.$or = [
+        { fullName: { $regex: search, $options: "i" } },
+        { patientId: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+        { phone: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const pageNumber = Number(page);
+    const limitNumber = Number(limit);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const sortOrder = order === "asc" ? 1 : -1;
+
+    const patients = await Patient.find(query)
+      .sort({ [sortBy]: sortOrder })
+      .skip(skip)
+      .limit(limitNumber);
+
+    const total = await Patient.countDocuments(query);
 
     return res.status(200).json({
-      count: patients.length,
+      message: "Patients fetched successfully",
+      pagination: {
+        total,
+        page: pageNumber,
+        limit: limitNumber,
+        totalPages: Math.ceil(total / limitNumber),
+      },
+      filters: {
+        search,
+        status: status || null,
+        bloodGroup: bloodGroup || null,
+        sortBy,
+        order,
+      },
       patients,
     });
   } catch (error) {
@@ -221,7 +269,6 @@ const updatePatientStatus = async (req, res) => {
   }
 };
 
-// Upload patient document
 const uploadMyDocument = async (req, res) => {
   try {
     const patient = await Patient.findOne({
@@ -249,7 +296,7 @@ const uploadMyDocument = async (req, res) => {
     const uploadResult = await uploadDocumentToCloudinary(
       req.file.buffer,
       "patients/documents",
-      "raw"
+      "auto"
     );
 
     const newDocument = {
@@ -257,6 +304,7 @@ const uploadMyDocument = async (req, res) => {
       fileUrl: uploadResult.secure_url,
       fileType: safeFileType,
       publicId: uploadResult.public_id,
+      resourceType: uploadResult.resource_type || "raw",
       uploadedAt: new Date(),
     };
 
@@ -275,7 +323,6 @@ const uploadMyDocument = async (req, res) => {
   }
 };
 
-// Get my documents
 const getMyDocuments = async (req, res) => {
   try {
     const patient = await Patient.findOne({
@@ -303,7 +350,51 @@ const getMyDocuments = async (req, res) => {
   }
 };
 
-// Delete my document
+const getMyDashboard = async (req, res) => {
+  try {
+    const patient = await Patient.findOne({
+      userId: req.user.id,
+      isDeleted: false,
+    }).select(
+      "patientId fullName email phone profileStrength bloodGroup emergencyContact status documents avatarUrl"
+    );
+
+    if (!patient) {
+      return res.status(404).json({ message: "Patient profile not found" });
+    }
+
+    const hasEmergencyContact = Boolean(
+      patient.emergencyContact &&
+        (
+          patient.emergencyContact.name ||
+          patient.emergencyContact.relationship ||
+          patient.emergencyContact.phone
+        )
+    );
+
+    return res.status(200).json({
+      message: "Patient dashboard fetched successfully",
+      dashboard: {
+        patientId: patient.patientId,
+        fullName: patient.fullName,
+        email: patient.email,
+        phone: patient.phone,
+        avatarUrl: patient.avatarUrl,
+        profileStrength: patient.profileStrength,
+        bloodGroup: patient.bloodGroup,
+        documentsCount: patient.documents?.length || 0,
+        hasEmergencyContact,
+        status: patient.status,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to fetch dashboard",
+      error: error.message,
+    });
+  }
+};
+
 const deleteMyDocument = async (req, res) => {
   try {
     const { documentId } = req.params;
@@ -323,11 +414,9 @@ const deleteMyDocument = async (req, res) => {
       return res.status(404).json({ message: "Document not found" });
     }
 
-    // optional cloudinary delete
     if (document.publicId) {
-      const cloudinary = require("../config/cloudinary");
       await cloudinary.uploader.destroy(document.publicId, {
-        resource_type: "raw",
+        resource_type: document.resourceType || "raw",
       });
     }
 
@@ -353,5 +442,6 @@ module.exports = {
   updatePatientStatus,
   uploadMyDocument,
   getMyDocuments,
+  getMyDashboard,
   deleteMyDocument,
 };

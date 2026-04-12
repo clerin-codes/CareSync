@@ -289,6 +289,12 @@ const createAdmin = async (req, res) => {
       }
     }
 
+    if (password.length < 6) {
+      return res.status(400).json({
+        message: "Password must be at least 6 characters long",
+      });
+    }
+
     const passwordHash = await bcrypt.hash(password, 10);
 
     const admin = await User.create({

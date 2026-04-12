@@ -7,6 +7,7 @@ const {
   updatePatientStatus,
   uploadMyDocument,
   getMyDocuments,
+  getMyDashboard,
   deleteMyDocument
 } = require("../controllers/patientController");
 
@@ -20,6 +21,7 @@ const router = express.Router();
 router.post("/me", protect, authorize("patient"), createMyProfile);
 router.get("/me", protect, authorize("patient"), getMyProfile);
 router.put("/me", protect, authorize("patient"), updateMyProfile);
+router.get("/me/dashboard", protect, authorize("patient"), getMyDashboard);
 
 router.get("/", protect, authorize("admin"), getAllPatients);
 router.put("/:id/status", protect, authorize("admin"), updatePatientStatus);
