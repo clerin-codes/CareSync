@@ -1,6 +1,7 @@
 const Patient = require("../models/Patient");
 const generatePatientId = require("../utils/generatePatientId");
 const calculateProfileStrength = require("../utils/calculateProfileStrength");
+const uploadDocumentToCloudinary = require("../services/uploadDocumentToCloudinary");
 
 const getMyProfile = async (req, res) => {
   try {
@@ -220,10 +221,137 @@ const updatePatientStatus = async (req, res) => {
   }
 };
 
+// Upload patient document
+const uploadMyDocument = async (req, res) => {
+  try {
+    const patient = await Patient.findOne({
+      userId: req.user.id,
+      isDeleted: false,
+    });
+
+    if (!patient) {
+      return res.status(404).json({ message: "Patient profile not found" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: "Document file is required" });
+    }
+
+    const { title, fileType } = req.body;
+
+    if (!title) {
+      return res.status(400).json({ message: "Document title is required" });
+    }
+
+    const allowedTypes = ["report", "prescription", "scan", "insurance", "other"];
+    const safeFileType = allowedTypes.includes(fileType) ? fileType : "other";
+
+    const uploadResult = await uploadDocumentToCloudinary(
+      req.file.buffer,
+      "patients/documents",
+      "raw"
+    );
+
+    const newDocument = {
+      title,
+      fileUrl: uploadResult.secure_url,
+      fileType: safeFileType,
+      publicId: uploadResult.public_id,
+      uploadedAt: new Date(),
+    };
+
+    patient.documents.push(newDocument);
+    await patient.save();
+
+    return res.status(201).json({
+      message: "Document uploaded successfully",
+      document: patient.documents[patient.documents.length - 1],
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to upload document",
+      error: error.message,
+    });
+  }
+};
+
+// Get my documents
+const getMyDocuments = async (req, res) => {
+  try {
+    const patient = await Patient.findOne({
+      userId: req.user.id,
+      isDeleted: false,
+    }).select("documents patientId fullName");
+
+    if (!patient) {
+      return res.status(404).json({ message: "Patient profile not found" });
+    }
+
+    return res.status(200).json({
+      patientId: patient.patientId,
+      fullName: patient.fullName,
+      count: patient.documents.length,
+      documents: patient.documents.sort(
+        (a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt)
+      ),
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to fetch documents",
+      error: error.message,
+    });
+  }
+};
+
+// Delete my document
+const deleteMyDocument = async (req, res) => {
+  try {
+    const { documentId } = req.params;
+
+    const patient = await Patient.findOne({
+      userId: req.user.id,
+      isDeleted: false,
+    });
+
+    if (!patient) {
+      return res.status(404).json({ message: "Patient profile not found" });
+    }
+
+    const document = patient.documents.id(documentId);
+
+    if (!document) {
+      return res.status(404).json({ message: "Document not found" });
+    }
+
+    // optional cloudinary delete
+    if (document.publicId) {
+      const cloudinary = require("../config/cloudinary");
+      await cloudinary.uploader.destroy(document.publicId, {
+        resource_type: "raw",
+      });
+    }
+
+    patient.documents.pull(documentId);
+    await patient.save();
+
+    return res.status(200).json({
+      message: "Document deleted successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to delete document",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getMyProfile,
   createMyProfile,
   updateMyProfile,
   getAllPatients,
   updatePatientStatus,
+  uploadMyDocument,
+  getMyDocuments,
+  deleteMyDocument,
 };

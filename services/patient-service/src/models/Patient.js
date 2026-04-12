@@ -66,21 +66,9 @@ const patientSchema = new mongoose.Schema(
     },
 
     address: {
-      district: {
-        type: String,
-        default: "",
-        trim: true,
-      },
-      city: {
-        type: String,
-        default: "",
-        trim: true,
-      },
-      line1: {
-        type: String,
-        default: "",
-        trim: true,
-      },
+      district: { type: String, default: "", trim: true },
+      city: { type: String, default: "", trim: true },
+      line1: { type: String, default: "", trim: true },
     },
 
     bloodGroup: {
@@ -93,16 +81,8 @@ const patientSchema = new mongoose.Schema(
     },
 
     emergencyContact: {
-      name: {
-        type: String,
-        default: "",
-        trim: true,
-      },
-      relationship: {
-        type: String,
-        default: "",
-        trim: true,
-      },
+      name: { type: String, default: "", trim: true },
+      relationship: { type: String, default: "", trim: true },
       phone: {
         type: String,
         default: "",
@@ -116,27 +96,11 @@ const patientSchema = new mongoose.Schema(
     },
 
     medicalHistory: {
-      allergies: {
-        type: [String],
-        default: [],
-      },
-      chronicDiseases: {
-        type: [String],
-        default: [],
-      },
-      medications: {
-        type: [String],
-        default: [],
-      },
-      surgeries: {
-        type: [String],
-        default: [],
-      },
-      notes: {
-        type: String,
-        default: "",
-        trim: true,
-      },
+      allergies: { type: [String], default: [] },
+      chronicDiseases: { type: [String], default: [] },
+      medications: { type: [String], default: [] },
+      surgeries: { type: [String], default: [] },
+      notes: { type: String, default: "", trim: true },
     },
 
     heightCm: {
@@ -159,6 +123,33 @@ const patientSchema = new mongoose.Schema(
       min: 0,
       max: 100,
     },
+
+    documents: [
+      {
+        title: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        fileUrl: {
+          type: String,
+          required: true,
+        },
+        fileType: {
+          type: String,
+          enum: ["report", "prescription", "scan", "insurance", "other"],
+          default: "other",
+        },
+        publicId: {
+          type: String,
+          default: "",
+        },
+        uploadedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
 
     status: {
       type: String,
