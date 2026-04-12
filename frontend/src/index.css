@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-slate-950 text-white antialiased;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.glass-card {
+  @apply bg-white/10 backdrop-blur-xl border border-white/10 shadow-glass;
+}
+
+.section-container {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
