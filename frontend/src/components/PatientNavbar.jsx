@@ -12,7 +12,7 @@ export default function PatientNavbar() {
       { label: "Appointments", href: "/appointments" },
       { label: "Documents", href: "/patient/documents" },
       { label: "Medical History", href: "/patient/medical-history" },
-      { label: "AI Chat", href: "/patient/messages" },
+      { label: "AI Chat", href: "/patient/ai-chat" },
       { label: "Directory", href: "/patient/directory" },
     ],
     []

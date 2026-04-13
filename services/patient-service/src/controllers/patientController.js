@@ -471,6 +471,30 @@ const deleteMyDocument = async (req, res) => {
   }
 };
 
+//get all medical history of patient
+const getAllMedicalHistory = async (req, res) => {
+  try {
+    const patient = await Patient.findOne({
+      userId: req.user.id,
+      isDeleted: false,
+    }).select("medicalHistory");
+
+    if (!patient) {
+      return res.status(404).json({ message: "Patient profile not found" });
+    }
+
+    return res.status(200).json({
+      medicalHistory: patient.medicalHistory || [],
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to fetch medical history",
+      error: error.message,
+    });
+  }
+};
+
+
 module.exports = {
   getMyProfile,
   createMyProfile,
@@ -480,6 +504,7 @@ module.exports = {
   updatePatientStatus,
   uploadMyDocument,
   getMyDocuments,
+  getAllMedicalHistory,
   getMyDashboard,
   deleteMyDocument,
 };

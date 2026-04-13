@@ -57,3 +57,8 @@ export const deleteMyDocument = async (documentId) => {
   const { data } = await api.delete(`/patients/me/documents/${documentId}`);
   return data;
 };
+
+export const getAllMedicalHistory = async () => {
+  const { data } = await api.get("/patients/me/medical-history");
+  return data;
+};

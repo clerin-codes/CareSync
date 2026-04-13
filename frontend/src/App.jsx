@@ -13,6 +13,10 @@ import PatientDashboard from "./pages/patient/PatientDashboard";
 import Profile from "./pages/patient/Profile";
 import Documents from "./pages/patient/Documents";
 import CreateProfile from "./pages/patient/CreateProfile";
+import PatientMedicalHistory from "./pages/patient/PatientMedicalHistory";
+import AiChat from "./pages/patient/AiChat";
+import Directory from "./pages/patient/Directory";
+
 
 // function LandingPage() {
 //   return (
@@ -62,6 +66,9 @@ export default function App() {
           <Route path="/patient/profile" element={<Profile />} />
           <Route path="/patient/documents" element={<Documents />} />
           <Route path="/patient/create-profile" element={<CreateProfile/>} />
+          <Route path="/patient/medical-history" element={<PatientMedicalHistory />} />
+          <Route path="/patient/ai-chat" element={<AiChat />} />
+          <Route path="/patient/directory" element={<Directory />} />
         </Route>
 
         <Route path="*" element={<NotFound />} />
