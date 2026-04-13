@@ -1,157 +1,239 @@
 ﻿import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { FaShieldAlt, FaStethoscope, FaLock } from "react-icons/fa";
 import { loginUser } from "../../services/authService";
+import { useNavigate, Link } from "react-router-dom";
+import { setAuth } from "../../auth/authStorage";
+import { motion } from "framer-motion";
+import {
+  ArrowLeft,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+} from "lucide-react";
+
+import logo from "../../assets/logo.png";
+import loginImg from "../../assets/images/login.png";
+
+import "../../pages/public/Auth.css";
 
 export default function Login() {
-  const navigate = useNavigate();
-  const [form, setForm] = useState({ email: "", phone: "", password: "" });
+  const nav = useNavigate();
+
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const submit = async (e) => {
+  e.preventDefault();
+  setMsg("");
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
+  if (!identifier.trim() || !password.trim()) {
+    setMsg("Email/phone and password are required");
+    return;
+  }
 
-    try {
-      setLoading(true);
-      const payload = { password: form.password };
-      if (form.email.trim()) payload.email = form.email.trim();
-      if (form.phone.trim()) payload.phone = form.phone.trim();
+  try {
+    setLoading(true);
 
-      const data = await loginUser(payload);
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      setSuccess("Access granted - redirecting to your dashboard.");
-      setTimeout(() => navigate("/patient/dashboard"), 500);
-    } catch (err) {
-      setError(err.response?.data?.message || "Unable to sign in. Please check your credentials.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const data = await loginUser({
+      identifier: identifier.trim(),
+      password: password.trim(),
+    });
+
+    console.log("LOGIN RESPONSE:", data);
+
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+
+    const role = data.user?.role;
+
+    if (role === "patient") nav("/patient/dashboard");
+    else if (role === "doctor") nav("/doctor/dashboard");
+    else if (role === "admin") nav("/admin/dashboard");
+    else if (role === "responder") nav("/admin/dashboard/emergencies");
+    else nav("/");
+  } catch (err) {
+    console.error(err);
+    setMsg(err.response?.data?.message || "Login failed");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
-    <section className="section-container grid min-h-[calc(100vh-160px)] gap-8 py-10 lg:grid-cols-[1.1fr_0.9fr]">
-      <motion.div
-        initial={{ opacity: 0, x: -30 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.7 }}
-        className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 p-10 shadow-[0_30px_90px_rgba(15,23,42,0.22)] backdrop-blur-xl"
-      >
-        <div className="absolute -right-16 top-8 h-44 w-44 rounded-full bg-gradient-to-br from-teal-400/20 to-sky-500/10 blur-3xl" />
-        <div className="absolute left-8 bottom-14 h-36 w-36 rounded-full bg-sky-500/10 blur-3xl" />
-        <div className="relative z-10 max-w-xl">
-          <span className="badge">Hospital grade</span>
-          <h1 className="mt-6 text-4xl font-semibold tracking-tight text-white sm:text-5xl">
-            Secure access for your patient journey.
+    <div className="auth-page">
+      <div className="auth-noise" />
+
+      <div className="auth-form-panel">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+        >
+          <Link to="/" className="auth-home-btn">
+            <ArrowLeft size={14} strokeWidth={1.5} />
+            Home
+          </Link>
+        </motion.div>
+
+        <motion.div
+          className="auth-form-container"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            duration: 0.8,
+            delay: 0.2,
+            ease: [0.25, 0.46, 0.45, 0.94],
+          }}
+        >
+          <div className="auth-logo-wrapper">
+            <div className="auth-logo-ring">
+              <img src={logo} alt="CareLine 360" className="auth-logo" />
+            </div>
+          </div>
+
+          <div className="auth-brand">
+            <span className="auth-brand-name">
+              CareLine <span className="auth-brand-accent">360</span>
+            </span>
+          </div>
+
+          <span className="auth-overline">Welcome Back</span>
+          <h1 className="auth-title">
+            Sign <span className="auth-title-accent">In</span>
           </h1>
-          <p className="mt-6 max-w-2xl text-slate-300">
-            CareSync brings premium hospital management to patients with elegant records, secure forms, and effortless document control.
+          <p className="auth-subtitle">
+            Access your healthcare dashboard securely
           </p>
 
-          <div className="mt-10 grid gap-4 sm:grid-cols-2">
-            <div className="rounded-3xl border border-white/10 bg-slate-950/60 p-5">
-              <div className="flex items-center gap-3 text-teal-300">
-                <FaShieldAlt />
-                <span className="font-semibold text-white">Trusted security</span>
+          {msg && (
+            <motion.div
+              className="auth-msg auth-msg--error"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              {msg}
+            </motion.div>
+          )}
+
+          <form onSubmit={submit}>
+            <div className="auth-form-group">
+              <label className="auth-label" htmlFor="login-identifier">
+                Email or Phone
+              </label>
+              <div className="auth-input-wrapper">
+                <input
+                  id="login-identifier"
+                  className="auth-input"
+                  placeholder="Enter your email or phone"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  autoComplete="username"
+                />
+                <Mail size={15} strokeWidth={1.5} className="auth-input-icon" />
               </div>
-              <p className="mt-3 text-sm text-slate-400">Encrypted workflow and patient-first access controls.</p>
             </div>
-            <div className="rounded-3xl border border-white/10 bg-slate-950/60 p-5">
-              <div className="flex items-center gap-3 text-sky-300">
-                <FaStethoscope />
-                <span className="font-semibold text-white">Modern healthcare</span>
+
+            <div className="auth-form-group">
+              <label className="auth-label" htmlFor="login-password">
+                Password
+              </label>
+              <div className="auth-input-wrapper">
+                <input
+                  id="login-password"
+                  className="auth-input"
+                  placeholder="Enter your password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                  style={{ paddingRight: "3rem" }}
+                />
+                <Lock size={15} strokeWidth={1.5} className="auth-input-icon" />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((s) => !s)}
+                  className="auth-pw-toggle"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <EyeOff size={15} strokeWidth={1.5} />
+                  ) : (
+                    <Eye size={15} strokeWidth={1.5} />
+                  )}
+                </button>
               </div>
-              <p className="mt-3 text-sm text-slate-400">Insights, documents, and profile status in one calm place.</p>
             </div>
-          </div>
-        </div>
-      </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 0.15 }}
-        className="rounded-[2rem] border border-white/10 bg-slate-950/95 p-8 shadow-[0_30px_90px_rgba(15,23,42,0.24)] backdrop-blur-xl"
-      >
-        <div className="mb-8">
-          <p className="text-sm uppercase tracking-[0.3em] text-teal-300/90">Patient sign in</p>
-          <h2 className="mt-4 text-3xl font-semibold text-white">Login to your CareSync account</h2>
-          <p className="mt-3 text-sm text-slate-400">Enter your email or phone and password for secure access.</p>
-        </div>
+            <button type="submit" disabled={loading} className="auth-submit-btn">
+              <span className="btn-slide-bg" />
+              <span className="btn-text">
+                {loading ? (
+                  <>
+                    <span className="auth-spinner" /> Signing in...
+                  </>
+                ) : (
+                  <>
+                    Sign In <ArrowRight size={14} />
+                  </>
+                )}
+              </span>
+            </button>
+          </form>
 
-        {error && <div className="mb-5 rounded-3xl border border-red-400/20 bg-red-500/10 p-4 text-sm text-red-200">{error}</div>}
-        {success && <div className="mb-5 rounded-3xl border border-emerald-400/20 bg-emerald-500/10 p-4 text-sm text-emerald-100">{success}</div>}
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-300">Email</label>
-            <input
-              className="input"
-              type="email"
-              name="email"
-              placeholder="you@example.com"
-              value={form.email}
-              onChange={handleChange}
-            />
+          <div className="auth-divider">
+            <span className="auth-divider-line" />
+            <span className="auth-divider-text">or</span>
+            <span className="auth-divider-line" />
           </div>
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-300">Phone</label>
-            <input
-              className="input"
-              type="text"
-              name="phone"
-              placeholder="+1 555 012 3456"
-              value={form.phone}
-              onChange={handleChange}
-            />
+          <div className="auth-footer-links">
+            <Link to="/register" className="auth-link">
+              Create Account
+            </Link>
+            <Link to="/forgot-password" className="auth-link">
+              Forgot Password?
+            </Link>
           </div>
+        </motion.div>
+      </div>
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-300">Password</label>
-            <input
-              className="input"
-              type="password"
-              name="password"
-              placeholder="Enter your password"
-              value={form.password}
-              onChange={handleChange}
-              required
-            />
-          </div>
+      <div className="auth-image-panel">
+        <div className="auth-float-circle auth-float-circle--1" />
+        <div className="auth-float-circle auth-float-circle--2" />
+        <div className="auth-float-circle auth-float-circle--3" />
+        <div className="auth-img-glow auth-img-glow--right" />
 
-          <button type="submit" className="btn-primary w-full" disabled={loading}>
-            {loading ? "Signing in..." : "Login securely"}
-          </button>
-        </form>
+        <motion.div
+          className="auth-panel-overlay auth-panel-overlay--left"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
+        >
+          <p className="auth-panel-overline">CareLine 360</p>
+          <h2 className="auth-panel-title">
+            Your Health,
+            <br />
+            Our <em>Priority</em>
+          </h2>
+        </motion.div>
 
-        <div className="mt-6 flex flex-col gap-4 text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between">
-          <Link to="/forgot-password" className="text-sky-300 transition hover:text-white">
-            Forgot Password?
-          </Link>
-          <Link to="/register" className="font-medium text-white transition hover:text-teal-300">
-            Create a patient account
-          </Link>
-        </div>
-
-        <div className="mt-8 rounded-[1.75rem] border border-white/10 bg-slate-900/70 p-5 text-sm text-slate-400">
-          <div className="flex items-center gap-3 text-teal-300">
-            <FaLock />
-            <span className="font-semibold text-white">Protected patient access</span>
-          </div>
-          <p className="mt-3 leading-6">Your documents and profile are safeguarded by secure authentication and a trusted healthcare workflow.</p>
-        </div>
-      </motion.div>
-    </section>
+        <motion.img
+          src={loginImg}
+          alt="Healthcare professionals"
+          className="auth-hero-img"
+          initial={{ opacity: 0, y: 40, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{
+            duration: 1.2,
+            delay: 0.4,
+            ease: [0.25, 0.46, 0.45, 0.94],
+          }}
+        />
+      </div>
+    </div>
   );
 }
-

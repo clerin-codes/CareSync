@@ -1,127 +1,314 @@
 ﻿import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { registerUser } from "../../services/authService"
+import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FaUserCircle, FaCertificate } from "react-icons/fa";
-import { registerUser } from "../../services/authService";
+import {
+  ArrowLeft,
+  User,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  Users,
+  ArrowRight,
+} from "lucide-react";
+
+import logo from "../../assets/logo.png";
+import loginImg from "../../assets/images/login.png";
+
+import "../public/Auth.css";
 
 export default function Register() {
-  const navigate = useNavigate();
-  const [form, setForm] = useState({ fullName: "", email: "", phone: "", password: "" });
+  const nav = useNavigate();
+  const [role, setRole] = useState("patient");
+  const [fullName, setFullName] = useState("");
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [msgType, setMsgType] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const submit = async (e) => {
+  e.preventDefault();
+  setMsg("");
+  setMsgType("");
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setMessage("");
-    setError("");
+  const cleanId = identifier.trim();
 
-    try {
-      setLoading(true);
-      const payload = {
-        fullName: form.fullName,
-        email: form.email.trim(),
-        phone: form.phone.trim(),
-        password: form.password,
-        role: "patient",
-      };
-      const data = await registerUser(payload);
-      setMessage(data.message || "Registration successful. Redirecting to login...");
-      setTimeout(() => navigate("/login"), 1000);
-    } catch (err) {
-      setError(err.response?.data?.message || "Unable to register. Please try again.");
-    } finally {
-      setLoading(false);
+  if (!fullName.trim()) {
+    setMsgType("error");
+    setMsg("Full name is required");
+    return;
+  }
+
+  if (!cleanId) {
+    setMsgType("error");
+    setMsg("Email or phone is required");
+    return;
+  }
+
+  if (!password.trim()) {
+    setMsgType("error");
+    setMsg("Password is required");
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    const payload = {
+      role,
+      fullName: fullName.trim(),
+      password: password.trim(),
+    };
+
+    if (cleanId.includes("@")) {
+      payload.email = cleanId.toLowerCase();
+    } else {
+      payload.phone = cleanId;
     }
-  };
+
+    const res = await registerUser(payload);
+
+    setMsgType("success");
+    setMsg(res.data?.message || "Registered successfully");
+
+    setTimeout(() => {
+      nav("/login");
+    }, 1000);
+  } catch (err) {
+    setMsgType("error");
+    setMsg(
+      err.response?.data?.message ||
+        err.response?.data?.errors?.[0]?.msg ||
+        "Register failed"
+    );
+  } finally {
+    setLoading(false);
+  }
+};
+
+  const msgClass =
+    msgType === "success"
+      ? "auth-msg auth-msg--success"
+      : msgType === "error"
+      ? "auth-msg auth-msg--error"
+      : "auth-msg auth-msg--info";
 
   return (
-    <section className="section-container grid min-h-[calc(100vh-160px)] gap-8 py-10 lg:grid-cols-[1.05fr_0.95fr]">
-      <motion.div
-        initial={{ opacity: 0, x: -30 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.7 }}
-        className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 p-10 shadow-[0_30px_90px_rgba(15,23,42,0.22)] backdrop-blur-xl"
-      >
-        <div className="absolute -right-14 top-10 h-40 w-40 rounded-full bg-gradient-to-br from-sky-400/20 to-teal-300/10 blur-3xl" />
-        <div className="absolute left-10 bottom-12 h-32 w-32 rounded-full bg-slate-950/80 blur-2xl" />
+    <div className="auth-page">
+      <div className="auth-noise" />
 
-        <span className="badge">Patient onboarding</span>
-        <h1 className="mt-6 text-4xl font-semibold tracking-tight text-white sm:text-5xl">
-          Start your premium patient journey.
-        </h1>
-        <p className="mt-6 max-w-xl text-slate-300">
-          Register with CareSync and keep your medical history, documents, and profile details in one elegant patient portal.
-        </p>
+      {/* ═══════ FORM PANEL (Left) ═══════ */}
+      <div className="auth-form-panel">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+        >
+          <Link to="/" className="auth-home-btn">
+            <ArrowLeft size={14} strokeWidth={1.5} />
+            Home
+          </Link>
+        </motion.div>
 
-        <div className="mt-10 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-3xl border border-white/10 bg-slate-950/60 p-5">
-            <div className="flex items-center gap-3 text-teal-300">
-              <FaUserCircle />
-              <span className="font-semibold text-white">Patient centric</span>
+        <motion.div
+          className="auth-form-container auth-form-container--wide"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+        >
+          {/* Logo */}
+          <div className="auth-logo-wrapper">
+            <div className="auth-logo-ring">
+              <img src={logo} alt="CareLine 360" className="auth-logo" />
             </div>
-            <p className="mt-3 text-sm text-slate-400">A calm registration experience designed for patients.</p>
           </div>
-          <div className="rounded-3xl border border-white/10 bg-slate-950/60 p-5">
-            <div className="flex items-center gap-3 text-sky-300">
-              <FaCertificate />
-              <span className="font-semibold text-white">Clinical ready</span>
+
+          {/* Brand */}
+          <div className="auth-brand">
+            <span className="auth-brand-name">
+              CareLine <span className="auth-brand-accent">360</span>
+            </span>
+          </div>
+
+          {/* Header */}
+          <span className="auth-overline">Join Us Today</span>
+          <h1 className="auth-title">
+            Create <span className="auth-title-accent">Account</span>
+          </h1>
+          <p className="auth-subtitle">
+            Start your healthcare journey with CareLine 360
+          </p>
+
+          {/* Message */}
+          {msg && (
+            <motion.div
+              className={msgClass}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              {msg}
+            </motion.div>
+          )}
+
+          {/* Form */}
+          <form onSubmit={submit}>
+            {/* Role */}
+            <div className="auth-form-group">
+              <label className="auth-label" htmlFor="reg-role">
+                Register As
+              </label>
+              <div className="auth-input-wrapper">
+                <select
+                  id="reg-role"
+                  className="auth-select"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                >
+                  <option value="patient">Patient</option>
+                  <option value="doctor">Doctor</option>
+                </select>
+                <Users size={15} strokeWidth={1.5} className="auth-input-icon" />
+              </div>
             </div>
-            <p className="mt-3 text-sm text-slate-400">Prepared for secure hospital workflows and shared records.</p>
+
+            {/* Full Name */}
+            <div className="auth-form-group">
+              <label className="auth-label" htmlFor="reg-name">
+                Full Name
+              </label>
+              <div className="auth-input-wrapper">
+                <input
+                  id="reg-name"
+                  className="auth-input"
+                  placeholder="Enter your full name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  autoComplete="name"
+                />
+                <User size={15} strokeWidth={1.5} className="auth-input-icon" />
+              </div>
+            </div>
+
+            {/* Email / Phone */}
+            <div className="auth-form-group">
+              <label className="auth-label" htmlFor="reg-identifier">
+                Email or Phone
+              </label>
+              <div className="auth-input-wrapper">
+                <input
+                  id="reg-identifier"
+                  className="auth-input"
+                  placeholder="Enter your email or phone"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  autoComplete="email"
+                />
+                <Mail size={15} strokeWidth={1.5} className="auth-input-icon" />
+              </div>
+            </div>
+
+            {/* Password */}
+            <div className="auth-form-group">
+              <label className="auth-label" htmlFor="reg-password">
+                Password
+              </label>
+              <div className="auth-input-wrapper">
+                <input
+                  id="reg-password"
+                  className="auth-input"
+                  placeholder="e.g., Test@1234"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="new-password"
+                  style={{ paddingRight: "3rem" }}
+                />
+                <Lock size={15} strokeWidth={1.5} className="auth-input-icon" />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="auth-pw-toggle"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <EyeOff size={15} strokeWidth={1.5} />
+                  ) : (
+                    <Eye size={15} strokeWidth={1.5} />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" disabled={loading} className="auth-submit-btn">
+              <span className="btn-slide-bg" />
+              <span className="btn-text">
+                {loading ? (
+                  <>
+                    <span className="auth-spinner" /> Creating…
+                  </>
+                ) : (
+                  <>
+                    Create Account <ArrowRight size={14} />
+                  </>
+                )}
+              </span>
+            </button>
+          </form>
+
+          {/* Divider */}
+          <div className="auth-divider">
+            <span className="auth-divider-line" />
+            <span className="auth-divider-text">or</span>
+            <span className="auth-divider-line" />
           </div>
-        </div>
-      </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 0.15 }}
-        className="rounded-[2rem] border border-white/10 bg-slate-950/95 p-8 shadow-[0_30px_90px_rgba(15,23,42,0.24)] backdrop-blur-xl"
-      >
-        <div className="mb-8">
-          <p className="text-sm uppercase tracking-[0.3em] text-teal-300/90">Register</p>
-          <h2 className="mt-4 text-3xl font-semibold text-white">Create your patient account</h2>
-          <p className="mt-3 text-sm text-slate-400">Provide your details below to save your medical profile securely.</p>
-        </div>
-
-        {message && <div className="mb-5 rounded-3xl border border-emerald-400/20 bg-emerald-500/10 p-4 text-sm text-emerald-100">{message}</div>}
-        {error && <div className="mb-5 rounded-3xl border border-red-400/20 bg-red-500/10 p-4 text-sm text-red-200">{error}</div>}
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-300">Full Name</label>
-            <input className="input" type="text" name="fullName" placeholder="John Doe" value={form.fullName} onChange={handleChange} required />
+          {/* Footer */}
+          <div className="auth-footer-links auth-footer-links--center">
+            <span className="auth-footer-text">Already have an account?</span>
+            <Link to="/login" className="auth-link auth-link--accent">
+              Sign In
+            </Link>
           </div>
+        </motion.div>
+      </div>
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-300">Email</label>
-            <input className="input" type="email" name="email" placeholder="you@example.com" value={form.email} onChange={handleChange} required />
-          </div>
+      {/* ═══════ IMAGE PANEL (Right) ═══════ */}
+      <div className="auth-image-panel">
+        <div className="auth-float-circle auth-float-circle--1" />
+        <div className="auth-float-circle auth-float-circle--2" />
+        <div className="auth-float-circle auth-float-circle--3" />
+        <div className="auth-img-glow auth-img-glow--right" />
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-300">Phone</label>
-            <input className="input" type="text" name="phone" placeholder="+1 555 012 3456" value={form.phone} onChange={handleChange} required />
-          </div>
+        <motion.div
+          className="auth-panel-overlay auth-panel-overlay--left"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
+        >
+          <p className="auth-panel-overline">CareLine 360</p>
+          <h2 className="auth-panel-title">
+            Begin Your
+            <br />
+            Health <em>Journey</em>
+          </h2>
+        </motion.div>
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-300">Password</label>
-            <input className="input" type="password" name="password" placeholder="Create a strong password" value={form.password} onChange={handleChange} required />
-          </div>
-
-          <button type="submit" className="btn-primary w-full" disabled={loading}>
-            {loading ? "Creating account..." : "Register now"}
-          </button>
-        </form>
-
-        <p className="mt-6 text-sm text-slate-400">
-          Already registered? <Link to="/login" className="text-sky-300 transition hover:text-white">Login here</Link>
-        </p>
-      </motion.div>
-    </section>
+        <motion.img
+          src={loginImg}
+          alt="Healthcare professionals"
+          className="auth-hero-img"
+          initial={{ opacity: 0, y: 40, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{
+            duration: 1.2,
+            delay: 0.4,
+            ease: [0.25, 0.46, 0.45, 0.94],
+          }}
+        />
+      </div>
+    </div>
   );
 }
-

@@ -1,40 +1,46 @@
-import api from "./api";
-
-export const getMyDashboard = async () => {
-  const res = await api.get("/patients/me/dashboard");
-  return res.data;
-};
+import api from "../lib/api";
 
 export const getMyProfile = async () => {
-  const res = await api.get("/patients/me");
-  return res.data;
+  const { data } = await api.get("/patients/me");
+  return data;
 };
 
 export const createMyProfile = async (payload) => {
-  const res = await api.post("/patients/me", payload);
-  return res.data;
+  const { data } = await api.post("/patients/me", payload);
+  return data;
 };
 
 export const updateMyProfile = async (payload) => {
-  const res = await api.patch("/patients/me", payload);
-  return res.data;
+  const { data } = await api.patch("/patients/me", payload);
+  return data;
+};
+
+export const getMyDashboard = async () => {
+  const { data } = await api.get("/patients/me/dashboard");
+  return data;
 };
 
 export const getMyDocuments = async () => {
-  const res = await api.get("/patients/me/documents");
-  return res.data;
+  const { data } = await api.get("/patients/me/documents");
+  return data;
 };
 
-export const uploadMyDocument = async (formData) => {
-  const res = await api.post("/patients/me/documents", formData, {
+export const uploadMyDocument = async ({ file, title, fileType }) => {
+  const formData = new FormData();
+  formData.append("document", file);
+  formData.append("title", title);
+  if (fileType) formData.append("fileType", fileType);
+
+  const { data } = await api.post("/patients/me/documents", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
   });
-  return res.data;
+
+  return data;
 };
 
 export const deleteMyDocument = async (documentId) => {
-  const res = await api.delete(`/patients/me/documents/${documentId}`);
-  return res.data;
+  const { data } = await api.delete(`/patients/me/documents/${documentId}`);
+  return data;
 };
