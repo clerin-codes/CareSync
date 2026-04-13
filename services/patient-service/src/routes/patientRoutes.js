@@ -9,7 +9,13 @@ const {
   uploadMyDocument,
   getMyDocuments,
   getMyDashboard,
-  deleteMyDocument
+  deleteMyDocument,
+  createEmergencyRequest,
+  aiExplain,
+  getAllMedicalHistory,
+  getAllDoctors,
+  getAllHospitals,
+  getMyAppointments,
 } = require("../controllers/patientController");
 
 const { protect } = require("../middleware/authMiddleware");
@@ -25,6 +31,13 @@ router.get("/me", protect, authorize("patient"), getMyProfile);
 router.patch("/me", protect, authorize("patient"), updateMyProfile);
 router.post("/me/avatar", protect, authorize("patient"), uploadAvatar.single("avatar"), uploadMyAvatar);
 router.get("/me/dashboard", protect, authorize("patient"), getMyDashboard);
+router.post("/me/emergency", protect, authorize("patient"), createEmergencyRequest);
+router.post("/me/ai-explain", protect, authorize("patient"), aiExplain);
+router.get("/me/medical-history", protect, authorize("patient"), getAllMedicalHistory);
+router.get("/doctors", protect, authorize("patient"), getAllDoctors);
+router.get("/hospitals", protect, authorize("patient"), getAllHospitals);
+router.get("/me/appointments", protect, authorize("patient"), getMyAppointments);
+
 
 router.get("/", protect, authorize("admin"), getAllPatients);
 router.patch("/:id/status", protect, authorize("admin"), updatePatientStatus);

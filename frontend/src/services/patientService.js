@@ -58,7 +58,43 @@ export const deleteMyDocument = async (documentId) => {
   return data;
 };
 
+
+export const getAllPatients = async (params = {}) => {
+  const { data } = await api.get("/patients", { params });
+  return data;
+};
+
+export const updatePatientStatus = async (id, status) => {
+  const { data } = await api.patch(`/patients/${id}/status`, { status });
+  return data;
+};
+
+export const createEmergencyRequest = async (payload) => {
+  const { data } = await api.post("/patients/me/emergency", payload);
+  return data;
+};
+
+export const aiExplain = async ({ text, language }) => {
+  const { data } = await api.post("/patients/me/ai-explain", { text, language });
+  return data;
+};  
+
 export const getAllMedicalHistory = async () => {
   const { data } = await api.get("/patients/me/medical-history");
+  return data;
+};
+
+export const getAllDoctors = async () => {
+  const { data } = await api.get("/doctors");
+  return data;
+};
+
+export const getAllHospitals = async () => {
+  const { data } = await api.get("/hospitals");
+  return data;
+};
+
+export const getMyAppointments = async () => {
+  const { data } = await api.get("/patients/me/appointments");
   return data;
 };

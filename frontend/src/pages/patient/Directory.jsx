@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import PatientNavbar from "../../components/PatientNavbar";
 
+
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
   visible: (i = 0) => ({

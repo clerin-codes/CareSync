@@ -494,6 +494,134 @@ const getAllMedicalHistory = async (req, res) => {
   }
 };
 
+//get all doctors in the system - for directory
+const getAllDoctors = async (req, res) => {
+  try {
+    const doctors = await Doctor.find({ isDeleted: false }).select(
+      "fullName email phone specialization hospitalName profilePicture"
+    ); 
+    
+    return res.status(200).json({
+      message: "Doctors fetched successfully",
+      doctors,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to fetch doctors",
+      error: error.message,
+    });
+  }
+};
+
+//get all hospitals in the system - for directory
+const getAllHospitals = async (req, res) => {
+  try {
+    const hospitals = await Hospital.find({ isDeleted: false }).select(
+      "name address phone email profilePicture"
+    );
+    return res.status(200).json({
+      message: "Hospitals fetched successfully",
+      hospitals,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to fetch hospitals", 
+      error: error.message,
+    });
+  }
+};
+
+//get all appointments of the patient - for dashboard and appointments page
+const getMyAppointments = async (req, res) => {
+  try {
+    const appointments = await Appointment.find({
+      patientId: req.user.id,
+      isDeleted: false,
+    })
+      .populate("doctorId", "fullName specialization profilePicture")
+      .populate("hospitalId", "name address profilePicture")
+      .sort({ date: -1 });
+
+    return res.status(200).json({
+      message: "Appointments fetched successfully",
+      appointments,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to fetch appointments",
+      error: error.message,
+    });
+  }
+};
+
+//ai explain medical text
+const aiExplainMedicalText = async (req, res) => {
+  try {
+    const { text, language } = req.body;
+    if (!text || !text.trim()) {
+      return res.status(400).json({ message: "Text is required for explanation" });
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ success: false, message: "Gemini API key not configured" });
+    }
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+
+    // gemini-2.0-flash-lite has a separate (more generous) free-tier quota bucket
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
+
+    // Default language = English
+    const selectedLanguage = language || "english";
+
+    const result = await model.generateContent(
+      `Explain this medical information in simple language for a patient.
+
+      Language: ${selectedLanguage}
+
+      Do NOT use markdown formatting.
+      Do NOT use headings.
+      Do NOT use bold text.
+      Do NOT give medical advice.
+      Do NOT change dosage.
+      Only explain meaning clearly.
+
+      ${text}`,
+    );
+
+    return res.status(200).json({
+      message: "Medical text explained successfully",
+      explanation: "This is a placeholder explanation. In a real implementation, this would be replaced with the actual AI-generated explanation.",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to explain medical text",
+      error: error.message,
+    });
+  }
+};
+
+//create emergency sos request
+const createEmergencyRequest = async (req, res) => {
+  try {
+    const { location, description } = req.body;
+    if (!location || !description) {
+      return res.status(400).json({ message: "Location and description are required" });
+    }
+
+    // Implementation for creating emergency request would go here
+    return res.status(201).json({
+      message: "Emergency request created successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to create emergency request",
+      error: error.message,
+    });
+  }
+};
+
 
 module.exports = {
   getMyProfile,
@@ -507,4 +635,9 @@ module.exports = {
   getAllMedicalHistory,
   getMyDashboard,
   deleteMyDocument,
+  getAllDoctors,
+  getAllHospitals,
+  getMyAppointments,
+  aiExplainMedicalText,
+  createEmergencyRequest,
 };
