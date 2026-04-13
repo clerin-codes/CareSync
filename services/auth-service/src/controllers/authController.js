@@ -1,8 +1,8 @@
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const User = require("../models/User");
+const sendEmail  = require("../utils/sendEmail");
 const generateToken = require("../utils/generateToken");
-const generateResetToken = require("../utils/generateResetToken");
 
 // Register
 const register = async (req, res) => {
@@ -133,31 +133,48 @@ const forgotPassword = async (req, res) => {
       return res.status(400).json({ message: "Email is required" });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: normalizedEmail });
 
-    // avoid exposing whether user exists
+    // do not reveal whether account exists
     if (!user) {
       return res.status(200).json({
-        message: "If an account with that email exists, a reset token has been generated",
+        message: "If an account with that email exists, an OTP has been sent",
       });
     }
 
-    const resetToken = generateResetToken();
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // store hashed token in DB
-    const hashedResetToken = crypto
-      .createHash("sha256")
-      .update(resetToken)
-      .digest("hex");
+    const hashedOtp = crypto.createHash("sha256").update(otp).digest("hex");
 
-    user.passwordResetToken = hashedResetToken;
-    user.passwordResetExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+    user.passwordResetToken = hashedOtp;
+    user.passwordResetExpires = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
+    const subject = "CareSync Password Reset OTP";
+    const text = `Your CareSync OTP is ${otp}. It will expire in 10 minutes.`;
+    const html = `
+      <div style="font-family: Arial, sans-serif; color: #1f2937; line-height: 1.6;">
+        <h2 style="color: #178d95; margin-bottom: 8px;">CareSync Password Reset</h2>
+        <p>Hello ${user.fullName || "User"},</p>
+        <p>Use the OTP below to reset your password:</p>
+        <div style="font-size: 28px; font-weight: bold; letter-spacing: 6px; color: #111827; margin: 16px 0;">
+          ${otp}
+        </div>
+        <p>This OTP will expire in <strong>10 minutes</strong>.</p>
+        <p>If you did not request this, you can ignore this email.</p>
+      </div>
+    `;
+
+    await sendEmail({
+      to: user.email,
+      subject,
+      text,
+      html,
+    });
+
     return res.status(200).json({
-      message: "Password reset token generated successfully",
-      resetToken, // for now return in Postman; later send email instead
-      expiresInMinutes: 15,
+      message: "OTP sent successfully to your email",
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -167,11 +184,11 @@ const forgotPassword = async (req, res) => {
 // Reset Password
 const resetPassword = async (req, res) => {
   try {
-    const { resetToken, newPassword, confirmPassword } = req.body;
+    const { otp, newPassword, confirmPassword } = req.body;
 
-    if (!resetToken || !newPassword || !confirmPassword) {
+    if (!otp || !newPassword || !confirmPassword) {
       return res.status(400).json({
-        message: "Reset token, new password, and confirm password are required",
+        message: "OTP, new password, and confirm password are required",
       });
     }
 
@@ -181,19 +198,16 @@ const resetPassword = async (req, res) => {
       });
     }
 
-    const hashedResetToken = crypto
-      .createHash("sha256")
-      .update(resetToken)
-      .digest("hex");
+    const hashedOtp = crypto.createHash("sha256").update(otp).digest("hex");
 
     const user = await User.findOne({
-      passwordResetToken: hashedResetToken,
+      passwordResetToken: hashedOtp,
       passwordResetExpires: { $gt: new Date() },
     });
 
     if (!user) {
       return res.status(400).json({
-        message: "Invalid or expired reset token",
+        message: "Invalid or expired OTP",
       });
     }
 

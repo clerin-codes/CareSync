@@ -1,15 +1,34 @@
 ﻿import { useState } from "react";
 import { motion } from "framer-motion";
 import { FaSyncAlt } from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { resetPassword } from "../../services/authService";
 
+import logo from "../../assets/logo.png";
+import resetImg from "../../assets/images/login.png";
+import "../../pages/public/Auth.css";
+
 export default function ResetPassword() {
-  const [form, setForm] = useState({ resetToken: "", newPassword: "", confirmPassword: "" });
+  const nav = useNavigate();
+
+  const [form, setForm] = useState({
+    otp: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -17,63 +36,246 @@ export default function ResetPassword() {
     setMessage("");
     setError("");
 
+    if (!form.otp.trim() || !form.newPassword.trim() || !form.confirmPassword.trim()) {
+      setError("All fields are required.");
+      return;
+    }
+
     if (form.newPassword !== form.confirmPassword) {
       setError("Passwords do not match.");
       return;
     }
 
     try {
-      const data = await resetPassword(form);
+      setLoading(true);
+
+      const data = await resetPassword({
+        otp: form.otp,
+        newPassword: form.newPassword,
+        confirmPassword: form.confirmPassword,
+      });
+
       setMessage(data.message || "Password reset successfully.");
-      setForm({ resetToken: "", newPassword: "", confirmPassword: "" });
+
+      setForm({
+        otp: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+
+      setTimeout(() => {
+        nav("/login");
+      }, 1200);
     } catch (err) {
       setError(err.response?.data?.message || "Unable to reset your password.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <section className="section-container flex min-h-[calc(100vh-160px)] items-center justify-center py-10">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7 }}
-        className="w-full max-w-xl rounded-[2rem] border border-white/10 bg-slate-950/95 p-10 shadow-[0_30px_90px_rgba(15,23,42,0.24)] backdrop-blur-xl"
-      >
-        <div className="mb-8 flex items-center gap-3 text-sky-300">
-          <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-slate-900/70 text-xl text-white shadow-[0_12px_30px_rgba(56,189,248,0.25)]">
-            <FaSyncAlt />
-          </div>
-          <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-sky-300/80">Reset password</p>
-            <h1 className="mt-3 text-3xl font-semibold text-white">Create a new secure password</h1>
-          </div>
-        </div>
+    <div className="auth-page">
+      <div className="auth-noise" />
 
-        <p className="mb-8 text-slate-400">Use your reset token and choose a strong password to re-enter your CareSync account.</p>
+      <div className="auth-form-panel">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+        >
+          <Link to="/login" className="auth-home-btn">
+            <ArrowLeft size={14} strokeWidth={1.5} />
+            Back to Login
+          </Link>
+        </motion.div>
 
-        {message && <div className="mb-5 rounded-3xl border border-emerald-400/20 bg-emerald-500/10 p-4 text-sm text-emerald-100">{message}</div>}
-        {error && <div className="mb-5 rounded-3xl border border-red-400/20 bg-red-500/10 p-4 text-sm text-red-200">{error}</div>}
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-300">Reset token</label>
-            <input className="input" name="resetToken" placeholder="Enter reset token" value={form.resetToken} onChange={handleChange} required />
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-300">New password</label>
-            <input className="input" type="password" name="newPassword" placeholder="New password" value={form.newPassword} onChange={handleChange} required />
+        <motion.div
+          className="auth-form-container"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            duration: 0.8,
+            delay: 0.2,
+            ease: [0.25, 0.46, 0.45, 0.94],
+          }}
+        >
+          <div className="auth-logo-wrapper">
+            <div className="auth-logo-ring">
+              <img src={logo} alt="CareSync" className="auth-logo" />
+            </div>
           </div>
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-300">Confirm password</label>
-            <input className="input" type="password" name="confirmPassword" placeholder="Confirm password" value={form.confirmPassword} onChange={handleChange} required />
+          <div className="auth-brand">
+            <span className="auth-brand-name">
+              Care<span className="auth-brand-accent">Sync</span>
+            </span>
           </div>
 
-          <button type="submit" className="btn-primary w-full">Reset password</button>
-        </form>
-      </motion.div>
-    </section>
+          <span className="auth-overline">Reset Password</span>
+          <h1 className="auth-title">
+            Create <span className="auth-title-accent">New Password</span>
+          </h1>
+          <p className="auth-subtitle">
+            Enter your reset token and choose a secure password for your account.
+          </p>
+
+          {message && (
+            <motion.div
+              className="auth-msg auth-msg--success"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              {message}
+            </motion.div>
+          )}
+
+          {error && (
+            <motion.div
+              className="auth-msg auth-msg--error"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              {error}
+            </motion.div>
+          )}
+
+          <form onSubmit={handleSubmit}>
+            <div className="auth-form-group">
+              <label className="auth-label" htmlFor="otp">
+                Enter OTP
+              </label>
+              <div className="auth-input-wrapper">
+                <input
+                  id="otp"
+                  name="otp"
+                  className="auth-input"
+                  placeholder="Enter OTP"
+                  value={form.otp}
+                  onChange={handleChange}
+                  autoComplete="off"
+                />
+                <FaSyncAlt className="auth-input-icon" size={14} />
+              </div>
+            </div>
+
+            <div className="auth-form-group">
+              <label className="auth-label" htmlFor="newPassword">
+                New Password
+              </label>
+              <div className="auth-input-wrapper">
+                <input
+                  id="newPassword"
+                  name="newPassword"
+                  className="auth-input"
+                  type={showNewPassword ? "text" : "password"}
+                  placeholder="Enter new password"
+                  value={form.newPassword}
+                  onChange={handleChange}
+                  autoComplete="new-password"
+                  style={{ paddingRight: "3rem" }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword((s) => !s)}
+                  className="auth-pw-toggle"
+                  aria-label={showNewPassword ? "Hide password" : "Show password"}
+                >
+                  {showNewPassword ? (
+                    <EyeOff size={15} strokeWidth={1.5} />
+                  ) : (
+                    <Eye size={15} strokeWidth={1.5} />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div className="auth-form-group">
+              <label className="auth-label" htmlFor="confirmPassword">
+                Confirm Password
+              </label>
+              <div className="auth-input-wrapper">
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  className="auth-input"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm new password"
+                  value={form.confirmPassword}
+                  onChange={handleChange}
+                  autoComplete="new-password"
+                  style={{ paddingRight: "3rem" }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((s) => !s)}
+                  className="auth-pw-toggle"
+                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff size={15} strokeWidth={1.5} />
+                  ) : (
+                    <Eye size={15} strokeWidth={1.5} />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" disabled={loading} className="auth-submit-btn">
+              <span className="btn-slide-bg" />
+              <span className="btn-text">
+                {loading ? "Resetting..." : "Reset Password"}
+              </span>
+            </button>
+          </form>
+
+          <div className="auth-divider">
+            <span className="auth-divider-line" />
+            <span className="auth-divider-text">or</span>
+            <span className="auth-divider-line" />
+          </div>
+
+          <div className="auth-footer-links auth-footer-links--center">
+            <span className="auth-footer-text">Remembered your password?</span>
+            <Link to="/login" className="auth-link auth-link--accent">
+              Sign In
+            </Link>
+          </div>
+        </motion.div>
+      </div>
+
+      <div className="auth-image-panel">
+        <div className="auth-float-circle auth-float-circle--1" />
+        <div className="auth-float-circle auth-float-circle--2" />
+        <div className="auth-float-circle auth-float-circle--3" />
+        <div className="auth-img-glow auth-img-glow--right" />
+
+        <motion.div
+          className="auth-panel-overlay auth-panel-overlay--left"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
+        >
+          <p className="auth-panel-overline">CareSync</p>
+          <h2 className="auth-panel-title">
+            Secure Your
+            <br />
+            Account <em>Again</em>
+          </h2>
+        </motion.div>
+
+        <motion.img
+          src={resetImg}
+          alt="Reset password"
+          className="auth-hero-img"
+          initial={{ opacity: 0, y: 40, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{
+            duration: 1.2,
+            delay: 0.4,
+            ease: [0.25, 0.46, 0.45, 0.94],
+          }}
+        />
+      </div>
+    </div>
   );
 }
-
