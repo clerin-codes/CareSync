@@ -166,6 +166,43 @@ const updateMyProfile = async (req, res) => {
   }
 };
 
+const uploadMyAvatar = async (req, res) => {
+  try {
+    const patient = await Patient.findOne({
+      userId: req.user.id,
+      isDeleted: false,
+    });
+
+    if (!patient) {
+      return res.status(404).json({ message: "Patient profile not found" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: "Profile image is required" });
+    }
+
+    const uploadResult = await uploadDocumentToCloudinary(
+      req.file.buffer,
+      "patients/avatars",
+      "image"
+    );
+
+    patient.avatarUrl = uploadResult.secure_url;
+    await patient.save();
+
+    return res.status(200).json({
+      message: "Profile image uploaded successfully",
+      avatarUrl: patient.avatarUrl,
+      patient,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to upload profile image",
+      error: error.message,
+    });
+  }
+};
+
 const getAllPatients = async (req, res) => {
   try {
     const {
@@ -438,6 +475,7 @@ module.exports = {
   getMyProfile,
   createMyProfile,
   updateMyProfile,
+  uploadMyAvatar,
   getAllPatients,
   updatePatientStatus,
   uploadMyDocument,

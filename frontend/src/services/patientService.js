@@ -15,6 +15,19 @@ export const updateMyProfile = async (payload) => {
   return data;
 };
 
+export const uploadMyAvatar = async (file) => {
+  const formData = new FormData();
+  formData.append("avatar", file);
+
+  const { data } = await api.post("/patients/me/avatar", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+  return data;
+};
+
 export const getMyDashboard = async () => {
   const { data } = await api.get("/patients/me/dashboard");
   return data;

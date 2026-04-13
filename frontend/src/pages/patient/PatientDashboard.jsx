@@ -1,13 +1,6 @@
 ﻿import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {getMyDashboard,
-    getMyProfile,
-    createMyProfile,
-    updateMyProfile,
-    getMyDocuments,
-    uploadMyDocument,
-    deleteMyDocument,
-} from "../../services/patientService";
+import { getMyDashboard } from "../../services/patientService";
 import PatientNavbar from "../../components/PatientNavbar";
 
 const fadeUp = {
@@ -50,8 +43,20 @@ export default function PatientDashboard() {
     run();
     }, []);
 
-  const score = me?.profileStrength?.score ?? 0;
-  const missing = me?.profileStrength?.missing ?? [];
+  const score = Number(me?.profileStrength ?? 0);
+
+  const missing = useMemo(() => {
+    if (!me) return [];
+
+    const list = [];
+
+    if (!me.phone) list.push("Add phone number");
+    if (!me.bloodGroup) list.push("Add blood group");
+    if (!me.hasEmergencyContact) list.push("Add emergency contact");
+    if (!me.avatarUrl) list.push("Add profile photo");
+
+    return list;
+  }, [me]);
 
   const ScoreNumber = ({ value }) => (
     <motion.span

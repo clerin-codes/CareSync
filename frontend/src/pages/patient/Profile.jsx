@@ -1,5 +1,5 @@
 ﻿import { useEffect, useMemo, useState } from "react";
-import { getMyProfile, updateMyProfile } from "../../services/patientService";
+import { getMyProfile, updateMyProfile, uploadMyAvatar } from "../../services/patientService";
 import PatientNavbar from "../../components/PatientNavbar";
 
 function getLoginIdentity() {
@@ -32,21 +32,51 @@ export default function Profile() {
   const [msgType, setMsgType] = useState("");
   const [errors, setErrors] = useState({});
   const [identity, setIdentity] = useState(() => getLoginIdentity());
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState("");
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [form, setForm] = useState({
-    avatarUrl: "",
-    fullName: "",
-    email: "",
-    dob: "",
-    gender: "",
-    nic: "",
-    address: { district: "", city: "", line1: "" },
-    emergencyContact: { name: "", phone: "", relationship: "" },
-    bloodGroup: "",
-    allergies: "",
-    chronicConditions: "",
-    heightCm: "",
-    weightKg: "",
-  });
+  avatarUrl: "",
+  fullName: "",
+  email: "",
+  phone: "",
+  dob: "",
+  gender: "",
+  nic: "",
+  address: { district: "", city: "", line1: "" },
+  emergencyContact: { name: "", phone: "", relationship: "" },
+  bloodGroup: "",
+  allergies: "",
+  chronicConditions: "",
+  medications: "",
+  surgeries: "",
+  notes: "",
+  heightCm: "",
+  weightKg: "",
+});
+
+  useEffect(() => {
+    if (!avatarFile) {
+      setAvatarPreview(form.avatarUrl || "");
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(avatarFile);
+    setAvatarPreview(previewUrl);
+
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [avatarFile, form.avatarUrl]);
+
+  useEffect(() => {
+    if (!msg) return;
+
+    const timer = setTimeout(() => {
+      setMsg("");
+      setMsgType("");
+    }, 3000); // auto hide after 3 sec
+
+    return () => clearTimeout(timer);
+  }, [msg]);
 
   useEffect(() => {
     const run = async () => {
@@ -56,6 +86,7 @@ export default function Profile() {
           avatarUrl: data?.avatarUrl || "",
           fullName: data?.fullName || "",
           email: data?.email || "",
+          phone: data?.phone || "",
           dob: data?.dob ? data.dob.split("T")[0] : "",
           gender: data?.gender || "",
           nic: data?.nic || "",
@@ -71,8 +102,10 @@ export default function Profile() {
           },
           bloodGroup: data?.bloodGroup || "",
           allergies: data?.medicalHistory?.allergies?.join(", ") || "",
-          chronicConditions:
-            data?.medicalHistory?.chronicDiseases?.join(", ") || "",
+          chronicConditions: data?.medicalHistory?.chronicDiseases?.join(", ") || "",
+          medications: data?.medicalHistory?.medications?.join(", ") || "",
+          surgeries: data?.medicalHistory?.surgeries?.join(", ") || "",
+          notes: data?.medicalHistory?.notes || "",
           heightCm: data?.heightCm ? String(data.heightCm) : "",
           weightKg: data?.weightKg ? String(data.weightKg) : "",
         });
@@ -91,6 +124,54 @@ export default function Profile() {
 
     run();
   }, []);
+
+  const handleAvatarChange = (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  setAvatarFile(file);
+
+  const previewUrl = URL.createObjectURL(file);
+  setAvatarPreview(previewUrl);
+};
+
+  const handleAvatarUpload = async () => {
+    if (!avatarFile) {
+      setMsgType("error");
+      setMsg("Please choose an image first");
+      return;
+    }
+
+    try {
+      setUploadingAvatar(true);
+      setMsg("");
+      setMsgType("");
+
+      const res = await uploadMyAvatar(avatarFile);
+
+      setForm((prev) => ({
+        ...prev,
+        avatarUrl: res.avatarUrl,
+      }));
+
+      setAvatarFile(null);
+      setMsgType("success");
+      setMsg("Profile image updated successfully");
+    } catch (err) {
+      setMsgType("error");
+      setMsg(err.response?.data?.message || "Failed to upload profile image");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (avatarPreview) {
+        URL.revokeObjectURL(avatarPreview);
+      }
+    };
+  }, [avatarPreview]);
 
   const setField = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -173,7 +254,7 @@ export default function Profile() {
 
     try {
       const payload = {
-        avatarUrl: form.avatarUrl || undefined,
+        phone: form.phone || undefined,
         fullName: form.fullName,
         dob: form.dob || undefined,
         gender: form.gender || undefined,
@@ -184,33 +265,24 @@ export default function Profile() {
         address: form.address,
         emergencyContact: form.emergencyContact,
         medicalHistory: {
-          allergies: form.allergies
-            .split(",")
-            .map((item) => item.trim())
-            .filter(Boolean),
-          chronicDiseases: form.chronicConditions
-            .split(",")
-            .map((item) => item.trim())
-            .filter(Boolean),
+          allergies: form.allergies.split(",").map((item) => item.trim()).filter(Boolean),
+          chronicDiseases: form.chronicConditions.split(",").map((item) => item.trim()).filter(Boolean),
+          medications: form.medications.split(",").map((item) => item.trim()).filter(Boolean),
+          surgeries: form.surgeries.split(",").map((item) => item.trim()).filter(Boolean),
+          notes: form.notes.trim(),
         },
       };
 
       await updateMyProfile(payload);
       setMsgType("success");
-      setMsg("✅ Profile updated successfully");
+      setMsg("Profile updated successfully");
+      setMsgType("success");
       setEditMode(false);
     } catch (err) {
       setMsgType("error");
       setMsg(err.response?.data?.message || "Failed to update profile");
     }
   };
-
-  const msgClass =
-    msgType === "success"
-      ? "bg-green-50 text-green-800 ring-1 ring-green-100"
-      : msgType === "error"
-      ? "bg-red-50 text-red-800 ring-1 ring-red-100"
-      : "bg-blue-50 text-blue-800 ring-1 ring-blue-100";
 
   const ErrorText = ({ field }) =>
     errors[field] ? <p className="text-xs text-red-600 mt-1">{errors[field]}</p> : null;
@@ -298,13 +370,35 @@ export default function Profile() {
           </div>
         </div>
 
-        {msg && <div className={`mb-4 p-3 rounded-xl text-sm ${msgClass}`}>{msg}</div>}
+        {msg && (
+          <div className="fixed top-20 right-6 z-50">
+            <div
+              className={`px-5 py-3 rounded-xl shadow-lg text-sm font-medium flex items-center gap-2
+              ${
+                msgType === "success"
+                  ? "bg-green-500 text-white"
+                  : msgType === "error"
+                  ? "bg-red-500 text-white"
+                  : "bg-blue-500 text-white"
+              }`}
+            >
+              {msgType === "success" && "✅"}
+              {msgType === "error" && "❌"}
+              {msgType === "info" && "ℹ️"}
+              {msg}
+            </div>
+          </div>
+        )}
 
         <div className="bg-white/90 backdrop-blur-xl rounded-[28px] p-6 border border-white/60 shadow-sm mb-5">
           <div className="flex items-center gap-5 flex-wrap">
             <div className="w-24 h-24 rounded-2xl overflow-hidden bg-[#f8fafc] border border-[#dbe7ea] flex items-center justify-center shadow-sm">
-              {form.avatarUrl ? (
-                <img src={form.avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+              {(avatarPreview || form.avatarUrl) ? (
+                <img
+                  src={avatarPreview || form.avatarUrl}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
               ) : (
                 <span className="text-3xl">👤</span>
               )}
@@ -314,17 +408,28 @@ export default function Profile() {
               <div className="text-base font-semibold text-[#0f172a] mt-1">{form.fullName || "Patient"}</div>
               <div className="text-sm text-[#64748b]">{form.email || "—"}</div>
               {editMode && (
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-semibold text-[#64748b] uppercase tracking-wide">
-                      Avatar URL
-                    </label>
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <label className="inline-flex items-center justify-center h-11 px-4 rounded-xl border border-[#dbe7ea] bg-white text-sm font-medium text-gray-700 cursor-pointer hover:bg-[#f8fafc] transition">
+                    Choose Image
                     <input
-                      value={form.avatarUrl}
-                      onChange={(e) => setField("avatarUrl", e.target.value)}
-                      className="h-11 rounded-xl border border-[#dbe7ea] bg-white/90 px-3 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#178d95]/20 focus:border-[#178d95] shadow-sm"
-                      placeholder="https://..."
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg,image/webp"
+                      className="hidden"
+                      onChange={handleAvatarChange}
                     />
+                  </label>
+
+                  <button
+                    type="button"
+                    onClick={handleAvatarUpload}
+                    disabled={!avatarFile || uploadingAvatar}
+                    className="h-11 px-4 rounded-xl bg-[#178d95] text-white text-sm font-semibold hover:bg-[#126f76] disabled:opacity-60 disabled:cursor-not-allowed transition"
+                  >
+                    {uploadingAvatar ? "Uploading..." : "Upload Photo"}
+                  </button>
+
+                  <div className="text-sm text-gray-500 truncate">
+                    {avatarFile ? avatarFile.name : "PNG, JPG, JPEG, WEBP up to 3MB"}
                   </div>
                 </div>
               )}
@@ -336,6 +441,7 @@ export default function Profile() {
           <div className="grid md:grid-cols-2 gap-4">
             <ProfileCard label="Full Name" value={profilePreview.name} />
             <ProfileCard label="Email" value={profilePreview.email} />
+            <ProfileCard label="Phone" value={profilePreview.phone} />
             <ProfileCard label="DOB / Gender" value={`${profilePreview.dob} • ${profilePreview.gender}`} />
             <ProfileCard label="NIC" value={profilePreview.nic} />
             <ProfileCard label="Address" value={profilePreview.address} span />
@@ -344,6 +450,9 @@ export default function Profile() {
             <ProfileCard label="Height / Weight" value={`${profilePreview.height} • ${profilePreview.weight}`} />
             <ProfileCard label="Allergies" value={profilePreview.allergies} span />
             <ProfileCard label="Chronic Conditions" value={profilePreview.conditions} span />
+            <ProfileCard label="Medications" value={profilePreview.medications} span />
+            <ProfileCard label="Surgeries" value={profilePreview.surgeries} span />
+
           </div>
         ) : (
           <form
@@ -371,6 +480,18 @@ export default function Profile() {
                   value={form.email}
                   readOnly
                 />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-[#64748b] uppercase tracking-wide">
+                  Phone
+                </label>
+                <input
+                  className={fieldClass(errors.phone)}
+                  value={form.phone}
+                  onChange={(e) => setField("phone", e.target.value)}
+                  placeholder="0771234567"
+                />
+                <ErrorText field="phone" />
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-semibold text-[#64748b] uppercase tracking-wide">
@@ -537,6 +658,28 @@ export default function Profile() {
                   value={form.chronicConditions}
                   onChange={(e) => setField("chronicConditions", e.target.value)}
                   placeholder="Diabetes, Asthma…"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-[#64748b] uppercase tracking-wide">
+                  Medications <span className="normal-case font-normal">(comma separated)</span>
+                </label>
+                <input
+                  className={fieldClass(errors.medications)}
+                  value={form.medications}
+                  onChange={(e) => setField("medications", e.target.value)}
+                  placeholder="Paracetamol, Vitamin D"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-[#64748b] uppercase tracking-wide">
+                  Surgeries <span className="normal-case font-normal">(comma separated)</span>
+                </label>
+                <input
+                  className={fieldClass(errors.surgeries)}
+                  value={form.surgeries}
+                  onChange={(e) => setField("surgeries", e.target.value)}
+                  placeholder="Appendix surgery"
                 />
               </div>
             </div>

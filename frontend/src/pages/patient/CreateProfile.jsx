@@ -156,7 +156,7 @@ export default function CreateProfile() {
                   value={form.phone}
                   onChange={handleChange}
                   placeholder="0771234567"
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
+                  className="w-full text-gray-700 rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
                 />
               </div>
 
@@ -169,7 +169,7 @@ export default function CreateProfile() {
                   name="dob"
                   value={form.dob}
                   onChange={handleChange}
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
+                  className="w-full text-gray-700 rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
                 />
               </div>
 
@@ -181,7 +181,7 @@ export default function CreateProfile() {
                   name="gender"
                   value={form.gender}
                   onChange={handleChange}
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
+                  className="w-full text-gray-700 rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
                 >
                   <option value="">Select gender</option>
                   <option value="male">Male</option>
@@ -200,7 +200,7 @@ export default function CreateProfile() {
                   value={form.nic}
                   onChange={handleChange}
                   placeholder="Enter NIC"
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
+                  className="w-full text-gray-700 rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
                 />
               </div>
 
@@ -212,7 +212,7 @@ export default function CreateProfile() {
                   name="bloodGroup"
                   value={form.bloodGroup}
                   onChange={handleChange}
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
+                  className="w-full text-gray-700 rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
                 >
                   <option value="">Select blood group</option>
                   <option value="A+">A+</option>
@@ -236,7 +236,7 @@ export default function CreateProfile() {
                   value={form.heightCm}
                   onChange={handleChange}
                   placeholder="170"
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
+                  className="w-full text-gray-700 rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
                 />
               </div>
 
@@ -250,7 +250,7 @@ export default function CreateProfile() {
                   value={form.weightKg}
                   onChange={handleChange}
                   placeholder="65"
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
+                  className="w-full text-gray-700 rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
                 />
               </div>
             </div>
@@ -273,7 +273,7 @@ export default function CreateProfile() {
                     handleNestedChange("address", "district", e.target.value)
                   }
                   placeholder="Jaffna"
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
+                  className="w-full text-gray-700 rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
                 />
               </div>
 
@@ -288,7 +288,7 @@ export default function CreateProfile() {
                     handleNestedChange("address", "city", e.target.value)
                   }
                   placeholder="Nallur"
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
+                  className="w-full text-gray-700 rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
                 />
               </div>
 
@@ -303,7 +303,7 @@ export default function CreateProfile() {
                     handleNestedChange("address", "line1", e.target.value)
                   }
                   placeholder="Street / House number"
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
+                  className="w-full text-gray-700 rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
                 />
               </div>
             </div>
@@ -330,7 +330,7 @@ export default function CreateProfile() {
                     )
                   }
                   placeholder="Parent / Guardian"
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
+                  className="w-full text-gray-700 rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
                 />
               </div>
 
@@ -349,7 +349,7 @@ export default function CreateProfile() {
                     )
                   }
                   placeholder="Mother"
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
+                  className="w-full text-gray-700 rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
                 />
               </div>
 
@@ -368,7 +368,7 @@ export default function CreateProfile() {
                     )
                   }
                   placeholder="0771234567"
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
+                  className="w-full text-gray-700 rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
                 />
               </div>
             </div>
@@ -395,7 +395,7 @@ export default function CreateProfile() {
                     )
                   }
                   placeholder="Comma separated values"
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
+                  className="w-full text-gray-700 rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
                 />
               </div>
 
@@ -414,7 +414,7 @@ export default function CreateProfile() {
                     )
                   }
                   placeholder="Comma separated values"
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
+                  className="w-full text-gray-700 rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
                 />
               </div>
 
@@ -433,7 +433,7 @@ export default function CreateProfile() {
                     )
                   }
                   placeholder="Comma separated values"
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
+                  className="w-full text-gray-700 rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
                 />
               </div>
 
@@ -452,7 +452,7 @@ export default function CreateProfile() {
                     )
                   }
                   placeholder="Comma separated values"
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
+                  className="w-full text-gray-700 rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
                 />
               </div>
 
@@ -471,7 +471,7 @@ export default function CreateProfile() {
                     )
                   }
                   placeholder="Additional medical notes"
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
+                  className="w-full text-gray-700 rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
                 />
               </div>
             </div>
