@@ -1,2 +1,0 @@
-{"service":"payment-service","status":"running"}
-HTTP:200

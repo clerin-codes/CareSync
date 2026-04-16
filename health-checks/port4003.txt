@@ -1,2 +1,0 @@
-{"service":"appointment-service","status":"running"}
-HTTP:200

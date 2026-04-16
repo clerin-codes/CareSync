@@ -1,2 +1,0 @@
-{"service":"patient-service","status":"running"}
-HTTP:200

@@ -1,2 +1,0 @@
-{"service":"notification-service","status":"running"}
-HTTP:200

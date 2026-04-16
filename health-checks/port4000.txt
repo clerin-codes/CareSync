@@ -1,2 +1,0 @@
-{"service":"api-gateway","status":"running","routes":{"auth":"/auth","doctors":"/doctors","appointments":"/appointments","patients":"/patients","payments":"/payments","notifications":"/notifications"}}
-HTTP:200
