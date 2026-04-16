@@ -29,16 +29,49 @@ services:
     depends_on:
       - mongodb
 
+  appointment-service:
+    build: ./services/appointment-service
+    container_name: appointment-service
+    ports:
+      - "5003:5003"
+    env_file:
+      - ./services/appointment-service/.env
+    depends_on:
+      - mongodb
+
+  payment-service:
+    build: ./services/payment-service
+    container_name: payment-service
+    ports:
+      - "5004:5004"
+    env_file:
+      - ./services/payment-service/.env
+    depends_on:
+      - mongodb
+
+  doctor-service:
+    build: ./services/doctor-service
+    container_name: doctor-service
+    ports:
+      - "5005:5005"
+    env_file:
+      - ./services/doctor-service/.env
+    depends_on:
+      - mongodb
+
   api-gateway:
     build: ./api-gateway
     container_name: api-gateway
     ports:
-      - "5000:5000"
+      - "5050:5050"
     env_file:
       - ./api-gateway/.env
     depends_on:
       - auth-service
       - patient-service
+      - appointment-service
+      - payment-service
+      - doctor-service
 
   frontend:
     build: ./frontend
@@ -46,7 +79,7 @@ services:
     ports:
       - "5173:5173"
     environment:
-      - VITE_API_BASE_URL=http://localhost:5000
+      - VITE_API_BASE_URL=http://localhost:5050
     depends_on:
       - api-gateway
 
