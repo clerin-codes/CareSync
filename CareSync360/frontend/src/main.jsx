@@ -5,6 +5,7 @@ import App from "./App";
 import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./components/ui/ToastProvider";
 import "./styles/tailwind.css";
+import "./styles/doctor.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

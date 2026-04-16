@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Plus, Trash2, CalendarDays, Grid3x3 } from "lucide-react";
 import EmptyState from "../../components/EmptyState";
 import Loader from "../../components/Loader";
 import PageHeader from "../../components/PageHeader";
@@ -170,109 +171,108 @@ function DoctorAvailability() {
 
       {!loading && profileExists && (
         <div className="availability-layout">
-          <form className="form-card availability-form-card" onSubmit={handleSubmit}>
+          <form className="dr-form-card" onSubmit={handleSubmit}>
+            {/* ── KPIs ── */}
+            <div style={{ display: "flex", gap: "1rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
+              <article className="dr-stat-card" style={{ flex: 1 }}>
+                <div className="dr-stat-icon"><CalendarDays size={20} strokeWidth={1.5} /></div>
+                <div>
+                  <p className="dr-stat-label">Dates</p>
+                  <p className="dr-stat-value">{configuredDateCount}</p>
+                  <p className="dr-stat-desc">Date entries configured</p>
+                </div>
+              </article>
+              <article className="dr-stat-card" style={{ flex: 1 }}>
+                <div className="dr-stat-icon dr-stat-icon--purple"><Grid3x3 size={20} strokeWidth={1.5} /></div>
+                <div>
+                  <p className="dr-stat-label">Slots</p>
+                  <p className="dr-stat-value">{configuredSlotCount}</p>
+                  <p className="dr-stat-desc">Total visible to patients</p>
+                </div>
+              </article>
+            </div>
+
             {legacyCount > 0 && (
-              <p className="form-error">
-                {legacyCount} legacy day-based availability entr{legacyCount === 1 ? "y" : "ies"} found. Save dated
-                availability to replace them.
+              <p className="dr-form-msg dr-form-msg--error">
+                {legacyCount} legacy entry{legacyCount === 1 ? "" : "ies"} found. Save dated availability to replace.
               </p>
             )}
 
-            <div className="availability-toolbar">
-              <div className="availability-kpis">
-                <div className="availability-kpi">
-                  <strong>{configuredDateCount}</strong>
-                  <span>Dates</span>
-                </div>
-                <div className="availability-kpi">
-                  <strong>{configuredSlotCount}</strong>
-                  <span>Slots</span>
-                </div>
-              </div>
+            {error   && <p className="dr-form-msg dr-form-msg--error">{error}</p>}
+            {success && <p className="dr-form-msg dr-form-msg--success">{success}</p>}
 
-              <div className="availability-toolbar-actions">
-                <button type="button" className="btn btn-outline availability-add-btn" onClick={addRow}>
-                  Add Date
-                </button>
-              </div>
-            </div>
-
-            <div className="availability-grid doctor-availability-grid">
+            {/* ── Rows ── */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "1.5rem" }}>
               {rows.map((row, index) => (
-                <article className="availability-row-card" key={`${row.date || "new"}-${index}`}>
-                  <div className="availability-row-head">
-                    <h3>Availability Entry {index + 1}</h3>
-                    <button
-                      type="button"
-                      className="btn btn-outline btn-small availability-remove-btn"
-                      onClick={() => removeRow(index)}
-                      disabled={rows.length === 1}
-                    >
-                      Remove
-                    </button>
+                <div className="dr-avail-row" key={`${row.date || "new"}-${index}`}>
+                  <div>
+                    <label className="dr-label" htmlFor={`avail-date-${index}`}>Date</label>
+                    <input
+                      id={`avail-date-${index}`}
+                      className="dr-input"
+                      type="date"
+                      min={minDate}
+                      value={row.date}
+                      onChange={(event) => updateRow(index, "date", event.target.value)}
+                    />
                   </div>
 
-                  <div className="availability-row">
-                    <label className="availability-field">
-                      <span>Date</span>
-                      <input
-                        type="date"
-                        className="availability-input"
-                        min={minDate}
-                        value={row.date}
-                        onChange={(event) => updateRow(index, "date", event.target.value)}
-                      />
-                    </label>
-
-                    <label className="availability-field">
-                      <span>Time Slots</span>
-                      <input
-                        type="text"
-                        className="availability-input"
-                        placeholder="09:00 AM, 10:30 AM, 02:00 PM"
-                        value={row.slots}
-                        onChange={(event) => updateRow(index, "slots", event.target.value)}
-                      />
-                    </label>
+                  <div>
+                    <label className="dr-label" htmlFor={`avail-slots-${index}`}>Time Slots</label>
+                    <input
+                      id={`avail-slots-${index}`}
+                      className="dr-input"
+                      type="text"
+                      placeholder="09:00 AM, 10:30 AM, 02:00 PM"
+                      value={row.slots}
+                      onChange={(event) => updateRow(index, "slots", event.target.value)}
+                    />
                   </div>
 
-                  <p className="availability-row-note">Use comma-separated slots for the selected date.</p>
-                </article>
+                  <button
+                    type="button"
+                    className="dr-avail-remove"
+                    onClick={() => removeRow(index)}
+                    disabled={rows.length === 1}
+                    aria-label="Remove entry"
+                  >
+                    <Trash2 size={14} strokeWidth={1.5} />
+                  </button>
+                </div>
               ))}
             </div>
 
-            <div className="availability-actions">
-              <button type="submit" className="btn btn-primary availability-submit-btn" disabled={saving}>
-                {saving ? "Saving..." : "Save Availability"}
+            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+              <button type="button" className="dr-btn dr-btn-outline" onClick={addRow}>
+                <Plus size={14} strokeWidth={1.5} />
+                Add Date
+              </button>
+              <button type="submit" className="dr-btn dr-btn-primary" disabled={saving}>
+                <span>{saving ? "Saving…" : "Save Availability"}</span>
               </button>
             </div>
-
-            {error && <p className="form-error">{error}</p>}
-            {success && <p className="form-success">{success}</p>}
           </form>
 
           <aside className="availability-side">
-            <div className="panel">
-              <h3>Booking Logic</h3>
-              <ul className="profile-tip-list">
-                <li>Only the listed dated slots are shown on doctor profile and booking pages.</li>
-                <li>After a patient books a slot, that slot is hidden until the booking is cancelled.</li>
-                <li>Keep slot times in a consistent format so patients see clean options.</li>
+            <div className="dr-panel" style={{ marginBottom: "1rem" }}>
+              <p className="dr-panel-title">Booking Logic</p>
+              <ul style={{ paddingLeft: "1rem", margin: 0 }}>
+                <li style={{ fontSize: "0.78rem", color: "var(--dr-text-muted)", marginBottom: "0.5rem", lineHeight: "1.5" }}>Only listed dated slots are visible on booking pages.</li>
+                <li style={{ fontSize: "0.78rem", color: "var(--dr-text-muted)", marginBottom: "0.5rem", lineHeight: "1.5" }}>Once booked, a slot is hidden until cancelled.</li>
+                <li style={{ fontSize: "0.78rem", color: "var(--dr-text-muted)", lineHeight: "1.5" }}>Use a consistent time format so patients see clean options.</li>
               </ul>
             </div>
 
-            <div className="panel">
-              <h3>Upcoming Dates</h3>
+            <div className="dr-panel">
+              <p className="dr-panel-title">Upcoming Dates</p>
               {upcomingEntries.length === 0 ? (
-                <p className="doctor-muted-note">No upcoming availability entries.</p>
+                <p className="dr-muted-note">No upcoming availability entries.</p>
               ) : (
-                <ul className="doctor-slot-preview-list">
+                <ul className="dr-slot-list">
                   {upcomingEntries.map((entry, index) => (
                     <li key={`${entry.date}-${index}`}>
                       <span>{formatDateLabel(entry.date)}</span>
-                      <strong>
-                        {entry.slotCount} slot{entry.slotCount === 1 ? "" : "s"}
-                      </strong>
+                      <strong>{entry.slotCount} slot{entry.slotCount === 1 ? "" : "s"}</strong>
                     </li>
                   ))}
                 </ul>

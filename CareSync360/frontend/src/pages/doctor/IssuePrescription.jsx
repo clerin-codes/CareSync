@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { Plus, Trash2, Download, FileText, ClipboardList } from "lucide-react";
 import PageHeader from "../../components/PageHeader";
 import { patientService } from "../../services/patientService";
 
@@ -142,166 +143,216 @@ function IssuePrescription() {
   return (
     <section className="dashboard-page doctor-page doctor-prescription-page">
       <PageHeader
+        eyebrow="Clinical Workflow"
         title="Issue Prescription"
-        subtitle="Create and store digital prescriptions with clear medicine instructions for each patient."
+        subtitle="Create and store digital prescriptions with medicine instructions for each patient."
       />
 
       <div className="doctor-prescription-layout">
-        <form className="form-card doctor-prescription-form" onSubmit={handleSubmit}>
-          <div className="doctor-form-section">
-            <div className="doctor-form-section-head">
-              <h2>Consultation Context</h2>
+        <form className="dr-form-card doctor-prescription-form" onSubmit={handleSubmit}>
+          {/* Context panel */}
+          <div className="dr-form-head">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <div>
+                <h2>Consultation Context</h2>
+                <p>Fill in notes and the medicine plan below.</p>
+              </div>
               {hasPatientContext ? (
                 <button
-                  className="btn btn-outline btn-small"
+                  className="dr-btn dr-btn-outline"
                   type="button"
                   onClick={() => loadPatientReports(form.patientId.trim())}
                 >
+                  <FileText size={13} strokeWidth={1.5} />
                   Load Reports
                 </button>
               ) : (
-                <Link className="btn btn-outline btn-small" to="/doctor/appointments">
+                <Link className="dr-btn dr-btn-outline" to="/doctor/appointments">
                   Go to Appointments
                 </Link>
               )}
             </div>
+          </div>
 
-            <div className="form-grid two-col">
-              <div className="doctor-summary-item">
-                <span>Patient Link</span>
-                <strong>{hasPatientContext ? "Attached from appointment" : "Not selected"}</strong>
-              </div>
-
-              <div className="doctor-summary-item">
-                <span>Appointment Link</span>
-                <strong>{form.appointmentId ? "Attached" : "Not attached"}</strong>
-              </div>
-
-              <label className="span-2">
-                Clinical Notes
-                <textarea
-                  rows="4"
-                  value={form.notes}
-                  onChange={(event) => setForm((prev) => ({ ...prev, notes: event.target.value }))}
-                  placeholder="Diagnosis, follow-up instructions, and caution notes"
-                />
-              </label>
+          <div className="dr-summary-list" style={{ marginBottom: "1.25rem" }}>
+            <div className="dr-summary-item">
+              <span>Patient Link</span>
+              <strong>{hasPatientContext ? "Attached from appointment" : "Not selected"}</strong>
+            </div>
+            <div className="dr-summary-item">
+              <span>Appointment Link</span>
+              <strong>{form.appointmentId ? "Attached" : "Not attached"}</strong>
             </div>
           </div>
 
-          <div className="doctor-form-section">
-            <div className="doctor-form-section-head">
-              <h2>Medicine Plan</h2>
-              <button className="btn btn-outline btn-small" type="button" onClick={addMedicine}>
-                Add Medicine
-              </button>
-            </div>
-
-            <div className="doctor-medicine-list">
-              {form.medicines.map((medicine, index) => (
-                <article className="doctor-medicine-card" key={`medicine-${index}`}>
-                  <div className="doctor-medicine-card-head">
-                    <h3>Medicine {index + 1}</h3>
-                    <button className="btn btn-outline btn-small" type="button" onClick={() => removeMedicine(index)}>
-                      Remove
-                    </button>
-                  </div>
-
-                  <div className="form-grid three-col doctor-medicine-fields">
-                    <label className="required">
-                      Name
-                      <input
-                        type="text"
-                        value={medicine.name}
-                        onChange={(event) => updateMedicine(index, "name", event.target.value)}
-                        required
-                      />
-                    </label>
-
-                    <label>
-                      Dosage
-                      <input
-                        type="text"
-                        value={medicine.dosage}
-                        onChange={(event) => updateMedicine(index, "dosage", event.target.value)}
-                        placeholder="1 tablet twice daily"
-                      />
-                    </label>
-
-                    <label>
-                      Instructions
-                      <input
-                        type="text"
-                        value={medicine.instructions}
-                        onChange={(event) => updateMedicine(index, "instructions", event.target.value)}
-                        placeholder="After meals"
-                      />
-                    </label>
-                  </div>
-                </article>
-              ))}
-            </div>
+          <div style={{ marginBottom: "1.25rem" }}>
+            <label className="dr-label" htmlFor="notes">Clinical Notes</label>
+            <textarea
+              id="notes"
+              className="dr-input"
+              rows="4"
+              style={{ resize: "vertical" }}
+              value={form.notes}
+              onChange={(event) => setForm((prev) => ({ ...prev, notes: event.target.value }))}
+              placeholder="Diagnosis, follow-up instructions, and caution notes"
+            />
           </div>
 
-          {error && <p className="form-error">{error}</p>}
-          {success && <p className="form-success">{success}</p>}
-
-          <div className="doctor-prescription-submit">
-            <button className="btn btn-primary" type="submit" disabled={saving}>
-              {saving ? "Issuing..." : "Issue Prescription"}
+          {/* Medicine plan */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+            <span className="dr-panel-title">Medicine Plan</span>
+            <button className="dr-btn dr-btn-outline" type="button" onClick={addMedicine}>
+              <Plus size={13} strokeWidth={1.5} />
+              Add Medicine
             </button>
           </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "1.25rem" }}>
+            {form.medicines.map((medicine, index) => (
+              <div
+                key={`medicine-${index}`}
+                style={{
+                  padding: "1rem",
+                  background: "var(--dr-bg)",
+                  border: "1px solid var(--dr-border)",
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr 1fr auto",
+                  gap: "0.75rem",
+                  alignItems: "end",
+                }}
+              >
+                <div>
+                  <label className="dr-label" htmlFor={`med-name-${index}`}>Name *</label>
+                  <input
+                    id={`med-name-${index}`}
+                    className="dr-input"
+                    type="text"
+                    value={medicine.name}
+                    onChange={(event) => updateMedicine(index, "name", event.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="dr-label" htmlFor={`med-dosage-${index}`}>Dosage</label>
+                  <input
+                    id={`med-dosage-${index}`}
+                    className="dr-input"
+                    type="text"
+                    value={medicine.dosage}
+                    onChange={(event) => updateMedicine(index, "dosage", event.target.value)}
+                    placeholder="1 tablet twice daily"
+                  />
+                </div>
+                <div>
+                  <label className="dr-label" htmlFor={`med-instr-${index}`}>Instructions</label>
+                  <input
+                    id={`med-instr-${index}`}
+                    className="dr-input"
+                    type="text"
+                    value={medicine.instructions}
+                    onChange={(event) => updateMedicine(index, "instructions", event.target.value)}
+                    placeholder="After meals"
+                  />
+                </div>
+                <button
+                  className="dr-avail-remove"
+                  style={{ marginTop: 0 }}
+                  type="button"
+                  onClick={() => removeMedicine(index)}
+                  disabled={form.medicines.length === 1}
+                  aria-label="Remove medicine"
+                >
+                  <Trash2 size={14} strokeWidth={1.5} />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {error   && <p className="dr-form-msg dr-form-msg--error">{error}</p>}
+          {success && <p className="dr-form-msg dr-form-msg--success">{success}</p>}
+
+          <button className="dr-btn dr-btn-primary" type="submit" disabled={saving}>
+            <span>{saving ? "Issuing…" : "Issue Prescription"}</span>
+          </button>
         </form>
 
+        {/* ── Side panels ── */}
         <aside className="doctor-prescription-side">
-          <div className="panel doctor-side-panel">
-            <div className="doctor-side-head">
-              <h2>Patient Reports</h2>
-              <span>{patientReports.length}</span>
+          {/* Patient Reports */}
+          <div className="dr-panel" style={{ marginBottom: "1rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+              <p className="dr-panel-title">Patient Reports</p>
+              <span className="dr-badge dr-badge--accepted">{patientReports.length}</span>
             </div>
 
             {patientReports.length === 0 && (
-              <p className="doctor-empty-note">
+              <p className="dr-muted-note">
                 {hasPatientContext
-                  ? "No reports found for the selected patient."
-                  : "Open this page from an appointment to load patient reports."}
+                  ? "No reports found for this patient."
+                  : "Open from an appointment to load patient reports."}
               </p>
             )}
 
             {patientReports.length > 0 && (
-              <div className="doctor-report-list">
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                 {patientReports.map((report) => (
-                  <article className="doctor-report-card" key={report._id}>
-                    <div className="doctor-report-meta">
-                      <h3>{report.title || "Medical Report"}</h3>
-                      <p>{report.originalName}</p>
-                      <p className="doctor-report-date">Uploaded: {formatDateTime(report.createdAt)}</p>
+                  <div
+                    key={report._id}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "0.65rem 0.75rem",
+                      background: "var(--dr-bg)",
+                      border: "1px solid var(--dr-border)",
+                    }}
+                  >
+                    <div>
+                      <p style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--dr-text)", marginBottom: "0.15rem" }}>
+                        {report.title || "Medical Report"}
+                      </p>
+                      <p style={{ fontSize: "0.7rem", color: "var(--dr-text-muted)" }}>{report.originalName}</p>
+                      <p style={{ fontSize: "0.68rem", color: "var(--dr-text-light)" }}>{formatDateTime(report.createdAt)}</p>
                     </div>
-                    <button className="btn btn-outline btn-small" type="button" onClick={() => downloadReport(report)}>
-                      Download
+                    <button
+                      className="dr-action-btn dr-action-btn--prescribe"
+                      type="button"
+                      onClick={() => downloadReport(report)}
+                    >
+                      <Download size={12} strokeWidth={1.5} />
                     </button>
-                  </article>
+                  </div>
                 ))}
               </div>
             )}
           </div>
 
-          <div className="panel doctor-side-panel">
-            <div className="doctor-side-head">
-              <h2>Issued Prescriptions</h2>
-              <span>{history.length}</span>
+          {/* History */}
+          <div className="dr-panel">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+              <p className="dr-panel-title">Issued Prescriptions</p>
+              <span className="dr-badge dr-badge--accepted">{history.length}</span>
             </div>
 
-            {history.length === 0 && <p className="doctor-empty-note">No prescriptions issued yet.</p>}
+            {history.length === 0 && <p className="dr-muted-note">No prescriptions issued yet.</p>}
 
             {history.length > 0 && (
-              <div className="doctor-history-list">
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                 {history.map((item) => (
-                  <article className="doctor-history-card" key={item._id}>
-                    <h3>{item.patientName || "Patient"}</h3>
-                    <p>Appointment: {item.appointmentId || "N/A"}</p>
-                    <p className="doctor-history-date">Issued: {formatDateTime(item.issuedDate)}</p>
-                  </article>
+                  <div
+                    key={item._id}
+                    style={{
+                      padding: "0.65rem 0.75rem",
+                      background: "var(--dr-bg)",
+                      border: "1px solid var(--dr-border)",
+                    }}
+                  >
+                    <p style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--dr-text)", marginBottom: "0.15rem" }}>
+                      {item.patientName || "Patient"}
+                    </p>
+                    <p style={{ fontSize: "0.7rem", color: "var(--dr-text-muted)" }}>Apt: {item.appointmentId || "N/A"}</p>
+                    <p style={{ fontSize: "0.68rem", color: "var(--dr-text-light)" }}>Issued: {formatDateTime(item.issuedDate)}</p>
+                  </div>
                 ))}
               </div>
             )}
