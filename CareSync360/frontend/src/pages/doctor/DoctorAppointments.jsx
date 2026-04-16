@@ -17,7 +17,14 @@ import PageHeader from "../../components/PageHeader";
 import { useToast } from "../../components/ui/ToastProvider";
 import { appointmentService } from "../../services/appointmentService";
 
-const statusOptions = ["ALL", "PENDING", "ACCEPTED", "REJECTED", "CANCELLED", "COMPLETED"];
+const statusOptions = [
+  "ALL",
+  "PENDING",
+  "ACCEPTED",
+  "REJECTED",
+  "CANCELLED",
+  "COMPLETED",
+];
 
 const formatAppointmentDate = (value) => {
   const date = new Date(value);
@@ -27,7 +34,7 @@ const formatAppointmentDate = (value) => {
     weekday: "short",
     year: "numeric",
     month: "short",
-    day: "numeric"
+    day: "numeric",
   });
 };
 
@@ -39,7 +46,9 @@ function DoctorAppointments() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [rejectingAppointment, setRejectingAppointment] = useState(null);
-  const [rejectionReason, setRejectionReason] = useState("Doctor is unavailable for this slot");
+  const [rejectionReason, setRejectionReason] = useState(
+    "Doctor is unavailable for this slot",
+  );
   const [savingRejection, setSavingRejection] = useState(false);
 
   const loadAppointments = async () => {
@@ -47,10 +56,13 @@ function DoctorAppointments() {
     setError("");
 
     try {
-      const data = await appointmentService.getDoctorAppointments(status === "ALL" ? {} : { status });
+      const data = await appointmentService.getDoctorAppointments(
+        status === "ALL" ? {} : { status },
+      );
       setAppointments(Array.isArray(data) ? data : []);
     } catch (err) {
-      const message = err.response?.data?.message || "Failed to load doctor appointments.";
+      const message =
+        err.response?.data?.message || "Failed to load doctor appointments.";
       setError(message);
       toast.error("Appointments unavailable", message);
       setAppointments([]);
@@ -70,10 +82,14 @@ function DoctorAppointments() {
       await appointmentService.acceptAppointment(id);
       const message = "Appointment accepted.";
       setSuccess(message);
-      toast.success("Appointment accepted", "The patient can now proceed to payment and consultation.");
+      toast.success(
+        "Appointment accepted",
+        "The patient can now proceed to payment and consultation.",
+      );
       loadAppointments();
     } catch (err) {
-      const message = err.response?.data?.message || "Failed to accept appointment.";
+      const message =
+        err.response?.data?.message || "Failed to accept appointment.";
       setError(message);
       toast.error("Acceptance failed", message);
     }
@@ -81,7 +97,9 @@ function DoctorAppointments() {
 
   const openRejectDialog = (appointment) => {
     setRejectingAppointment(appointment);
-    setRejectionReason(appointment.rejectionReason || "Doctor is unavailable for this slot");
+    setRejectionReason(
+      appointment.rejectionReason || "Doctor is unavailable for this slot",
+    );
   };
 
   const closeRejectDialog = () => {
@@ -101,15 +119,20 @@ function DoctorAppointments() {
 
     try {
       await appointmentService.rejectAppointment(rejectingAppointment._id, {
-        rejectionReason: rejectionReason.trim() || "Doctor is unavailable for this slot"
+        rejectionReason:
+          rejectionReason.trim() || "Doctor is unavailable for this slot",
       });
       const message = "Appointment rejected.";
       setSuccess(message);
-      toast.success("Appointment rejected", "The patient will see the reason in their timeline.");
+      toast.success(
+        "Appointment rejected",
+        "The patient will see the reason in their timeline.",
+      );
       closeRejectDialog();
       loadAppointments();
     } catch (err) {
-      const message = err.response?.data?.message || "Failed to reject appointment.";
+      const message =
+        err.response?.data?.message || "Failed to reject appointment.";
       setError(message);
       toast.error("Rejection failed", message);
       setSavingRejection(false);
@@ -123,10 +146,14 @@ function DoctorAppointments() {
       await appointmentService.completeAppointment(id);
       const message = "Appointment marked as completed.";
       setSuccess(message);
-      toast.success("Consultation completed", "Prescription issuance can continue from the completed visit.");
+      toast.success(
+        "Consultation completed",
+        "Prescription issuance can continue from the completed visit.",
+      );
       loadAppointments();
     } catch (err) {
-      const message = err.response?.data?.message || "Failed to complete appointment.";
+      const message =
+        err.response?.data?.message || "Failed to complete appointment.";
       setError(message);
       toast.error("Completion failed", message);
     }
@@ -135,11 +162,17 @@ function DoctorAppointments() {
   const summary = useMemo(
     () => ({
       total: appointments.length,
-      pending: appointments.filter((appointment) => appointment.status === "PENDING").length,
-      accepted: appointments.filter((appointment) => appointment.status === "ACCEPTED").length,
-      completed: appointments.filter((appointment) => appointment.status === "COMPLETED").length
+      pending: appointments.filter(
+        (appointment) => appointment.status === "PENDING",
+      ).length,
+      accepted: appointments.filter(
+        (appointment) => appointment.status === "ACCEPTED",
+      ).length,
+      completed: appointments.filter(
+        (appointment) => appointment.status === "COMPLETED",
+      ).length,
     }),
-    [appointments]
+    [appointments],
   );
 
   return (
@@ -158,7 +191,9 @@ function DoctorAppointments() {
       {/* ── Summary Stat Cards ── */}
       <div className="dr-stats-grid" style={{ marginBottom: "1.5rem" }}>
         <article className="dr-stat-card">
-          <div className="dr-stat-icon"><CalendarDays size={20} strokeWidth={1.5} /></div>
+          <div className="dr-stat-icon">
+            <CalendarDays size={20} strokeWidth={1.5} />
+          </div>
           <div>
             <p className="dr-stat-label">In View</p>
             <p className="dr-stat-value">{summary.total}</p>
@@ -166,7 +201,9 @@ function DoctorAppointments() {
           </div>
         </article>
         <article className="dr-stat-card">
-          <div className="dr-stat-icon dr-stat-icon--amber"><Clock size={20} strokeWidth={1.5} /></div>
+          <div className="dr-stat-icon dr-stat-icon--amber">
+            <Clock size={20} strokeWidth={1.5} />
+          </div>
           <div>
             <p className="dr-stat-label">Pending</p>
             <p className="dr-stat-value">{summary.pending}</p>
@@ -174,7 +211,9 @@ function DoctorAppointments() {
           </div>
         </article>
         <article className="dr-stat-card">
-          <div className="dr-stat-icon dr-stat-icon--blue"><CheckCircle size={20} strokeWidth={1.5} /></div>
+          <div className="dr-stat-icon dr-stat-icon--blue">
+            <CheckCircle size={20} strokeWidth={1.5} />
+          </div>
           <div>
             <p className="dr-stat-label">Accepted</p>
             <p className="dr-stat-value">{summary.accepted}</p>
@@ -182,7 +221,9 @@ function DoctorAppointments() {
           </div>
         </article>
         <article className="dr-stat-card">
-          <div className="dr-stat-icon dr-stat-icon--purple"><CheckSquare size={20} strokeWidth={1.5} /></div>
+          <div className="dr-stat-icon dr-stat-icon--purple">
+            <CheckSquare size={20} strokeWidth={1.5} />
+          </div>
           <div>
             <p className="dr-stat-label">Completed</p>
             <p className="dr-stat-value">{summary.completed}</p>
@@ -205,8 +246,10 @@ function DoctorAppointments() {
         ))}
       </div>
 
-      {error   ? <p className="dr-form-msg dr-form-msg--error">{error}</p>   : null}
-      {success ? <p className="dr-form-msg dr-form-msg--success">{success}</p> : null}
+      {error ? <p className="dr-form-msg dr-form-msg--error">{error}</p> : null}
+      {success ? (
+        <p className="dr-form-msg dr-form-msg--success">{success}</p>
+      ) : null}
       {loading ? <Loader label="Loading appointments..." /> : null}
 
       {!loading && appointments.length === 0 ? (
@@ -223,7 +266,9 @@ function DoctorAppointments() {
             <article className="dr-appt-card" key={appointment._id}>
               <div className="dr-appt-header">
                 <div>
-                  <p className="dr-appt-patient">{appointment.patientName || "Patient"}</p>
+                  <p className="dr-appt-patient">
+                    {appointment.patientName || "Patient"}
+                  </p>
                   <div className="dr-appt-meta">
                     <span className="dr-appt-meta-item">
                       <CalendarDays size={12} strokeWidth={1.5} />
@@ -242,7 +287,9 @@ function DoctorAppointments() {
                   </div>
                 </div>
                 {/* Status badge */}
-                <span className={`dr-badge dr-badge--${appointment.status.toLowerCase()}`}>
+                <span
+                  className={`dr-badge dr-badge--${appointment.status.toLowerCase()}`}
+                >
                   {appointment.status}
                 </span>
               </div>
@@ -254,15 +301,32 @@ function DoctorAppointments() {
               )}
 
               {appointment.rejectionReason && (
-                <div className="dr-appt-reason" style={{ borderLeftColor: "#dc2626" }}>
-                  <strong>Rejection reason:</strong> {appointment.rejectionReason}
+                <div
+                  className="dr-appt-reason"
+                  style={{ borderLeftColor: "#dc2626" }}
+                >
+                  <strong>Rejection reason:</strong>{" "}
+                  {appointment.rejectionReason}
                 </div>
               )}
 
-              <div className="dr-appt-meta" style={{ marginBottom: "0.75rem", fontSize: "0.72rem" }}>
+              <div
+                className="dr-appt-meta"
+                style={{ marginBottom: "0.75rem", fontSize: "0.72rem" }}
+              >
                 <span>{appointment.specialization || "General"}</span>
-                <span>LKR {Number(appointment.consultationFee || 0).toLocaleString()}</span>
-                <span style={{ fontFamily: "monospace", color: "var(--dr-text-light)" }}>{appointment._id}</span>
+                <span>
+                  LKR{" "}
+                  {Number(appointment.consultationFee || 0).toLocaleString()}
+                </span>
+                <span
+                  style={{
+                    fontFamily: "monospace",
+                    color: "var(--dr-text-light)",
+                  }}
+                >
+                  {appointment._id}
+                </span>
               </div>
 
               <div className="dr-appt-actions">
@@ -290,7 +354,10 @@ function DoctorAppointments() {
                 {appointment.status === "ACCEPTED" && (
                   <>
                     {appointment.meetingLink && (
-                      <Link className="dr-action-btn dr-action-btn--prescribe" to={`/consultation/${appointment._id}`}>
+                      <Link
+                        className="dr-action-btn dr-action-btn--prescribe"
+                        to={`/consultation/${appointment._id}`}
+                      >
                         <User size={13} strokeWidth={1.5} />
                         Consultation Room
                       </Link>
@@ -306,14 +373,19 @@ function DoctorAppointments() {
                   </>
                 )}
 
-                {appointment.status === "COMPLETED" && appointment.meetingLink && (
-                  <Link className="dr-action-btn dr-action-btn--prescribe" to={`/consultation/${appointment._id}`}>
-                    <User size={13} strokeWidth={1.5} />
-                    View Room
-                  </Link>
-                )}
+                {appointment.status === "COMPLETED" &&
+                  appointment.meetingLink && (
+                    <Link
+                      className="dr-action-btn dr-action-btn--prescribe"
+                      to={`/consultation/${appointment._id}`}
+                    >
+                      <User size={13} strokeWidth={1.5} />
+                      View Room
+                    </Link>
+                  )}
 
-                {(appointment.status === "ACCEPTED" || appointment.status === "COMPLETED") && (
+                {(appointment.status === "ACCEPTED" ||
+                  appointment.status === "COMPLETED") && (
                   <Link
                     className="dr-action-btn dr-action-btn--prescribe"
                     to={`/doctor/issue-prescription?patientId=${appointment.patientId}&appointmentId=${appointment._id}`}
@@ -335,10 +407,19 @@ function DoctorAppointments() {
         onClose={closeRejectDialog}
         actions={
           <>
-            <button type="button" className="dr-btn dr-btn-outline" onClick={closeRejectDialog}>
+            <button
+              type="button"
+              className="dr-btn dr-btn-outline"
+              onClick={closeRejectDialog}
+            >
               Cancel
             </button>
-            <button type="button" className="dr-btn dr-btn-primary" disabled={savingRejection} onClick={handleReject}>
+            <button
+              type="button"
+              className="dr-btn dr-btn-primary"
+              disabled={savingRejection}
+              onClick={handleReject}
+            >
               <span>{savingRejection ? "Saving…" : "Confirm Rejection"}</span>
             </button>
           </>

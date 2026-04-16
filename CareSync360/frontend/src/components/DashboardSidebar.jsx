@@ -19,26 +19,42 @@ import logo from "../assets/logo.png";
 
 const linksByRole = {
   PATIENT: [
-    { to: "/patient/dashboard",        label: "Dashboard",        icon: LayoutDashboard },
-    { to: "/patient/doctors",          label: "Find Doctors",     icon: Stethoscope },
-    { to: "/patient/book-appointment", label: "Book Appointment", icon: CalendarPlus },
-    { to: "/patient/appointments",     label: "My Appointments",  icon: CalendarClock },
-    { to: "/patient/payments",         label: "Payments",         icon: CreditCard },
-    { to: "/patient/profile",          label: "My Profile",       icon: UserCircle },
-    { to: "/patient/reports",          label: "My Reports",       icon: FileText },
-    { to: "/patient/prescriptions",    label: "Prescriptions",    icon: Pill },
+    { to: "/patient/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/patient/doctors", label: "Find Doctors", icon: Stethoscope },
+    {
+      to: "/patient/book-appointment",
+      label: "Book Appointment",
+      icon: CalendarPlus,
+    },
+    {
+      to: "/patient/appointments",
+      label: "My Appointments",
+      icon: CalendarClock,
+    },
+    { to: "/patient/payments", label: "Payments", icon: CreditCard },
+    { to: "/patient/profile", label: "My Profile", icon: UserCircle },
+    { to: "/patient/reports", label: "My Reports", icon: FileText },
+    { to: "/patient/prescriptions", label: "Prescriptions", icon: Pill },
   ],
   DOCTOR: [
-    { to: "/doctor/dashboard",         label: "Dashboard",        icon: LayoutDashboard },
-    { to: "/doctor/appointments",      label: "Appointments",     icon: CalendarClock },
-    { to: "/doctor/profile",           label: "My Profile",       icon: UserCircle },
-    { to: "/doctor/availability",      label: "Availability",     icon: Clock },
-    { to: "/doctor/issue-prescription",label: "Prescription",     icon: Pill },
+    { to: "/doctor/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/doctor/appointments", label: "Appointments", icon: CalendarClock },
+    { to: "/doctor/profile", label: "My Profile", icon: UserCircle },
+    { to: "/doctor/availability", label: "Availability", icon: Clock },
+    { to: "/doctor/issue-prescription", label: "Prescription", icon: Pill },
   ],
   ADMIN: [
-    { to: "/admin/dashboard",              label: "Dashboard",           icon: LayoutDashboard },
-    { to: "/admin/create-doctor-account",  label: "Create Doctor Account", icon: UserPlus },
-    { to: "/admin/create-doctor-profile",  label: "Create Doctor Profile", icon: ClipboardList },
+    { to: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    {
+      to: "/admin/create-doctor-account",
+      label: "Create Doctor Account",
+      icon: UserPlus,
+    },
+    {
+      to: "/admin/create-doctor-profile",
+      label: "Create Doctor Profile",
+      icon: ClipboardList,
+    },
   ],
 };
 
@@ -81,7 +97,10 @@ function DashboardSidebar() {
       </div>
 
       {/* ── Nav ── */}
-      <nav className="sidebar-nav" aria-label={`${role.toLowerCase()} navigation`}>
+      <nav
+        className="sidebar-nav"
+        aria-label={`${role.toLowerCase()} navigation`}
+      >
         <p className="sidebar-nav-title">Navigation</p>
         {links.map(({ to, label, icon: Icon }) => (
           <NavLink key={to} to={to}>

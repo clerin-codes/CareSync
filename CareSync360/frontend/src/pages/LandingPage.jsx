@@ -529,7 +529,7 @@ export default function LandingPage() {
                     delay={300}
                     animateBy="words"
                     direction="bottom"
-                    className="lp-serif italic text-[2.5rem] md:text-6xl lg:text-7xl xl:text-8xl font-normal leading-[0.95]"
+                    className="lp-serif italic text-[2.5rem] md:text-6xl lg:text-7xl xl:text-8xl font-normal leading-[0.95] text-[#1e3a5f]"
                     stepDuration={0.6}
                   />
                 </span>

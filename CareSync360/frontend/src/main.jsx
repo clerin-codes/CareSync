@@ -6,6 +6,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./components/ui/ToastProvider";
 import "./styles/tailwind.css";
 import "./styles/doctor.css";
+import "./styles/chatbot.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -16,5 +17,5 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         </ToastProvider>
       </AuthProvider>
     </BrowserRouter>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

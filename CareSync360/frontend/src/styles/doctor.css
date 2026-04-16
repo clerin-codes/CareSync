@@ -641,7 +641,9 @@
 }
 
 @keyframes drSpin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .loader-copy strong {
@@ -693,7 +695,9 @@
 }
 
 @media (max-width: 640px) {
-  .dr-form-grid { grid-template-columns: 1fr; }
+  .dr-form-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .dr-label {
@@ -862,11 +866,26 @@
   text-transform: uppercase;
 }
 
-.dr-badge--pending   { background: rgba(245, 158, 11, 0.1); color: #d97706; }
-.dr-badge--accepted  { background: rgba(13, 148, 136, 0.1); color: var(--dr-teal); }
-.dr-badge--completed { background: rgba(16, 185, 129, 0.1); color: #059669; }
-.dr-badge--rejected  { background: rgba(239, 68, 68, 0.1);  color: #dc2626; }
-.dr-badge--cancelled { background: rgba(107, 114, 128, 0.1); color: #6b7280; }
+.dr-badge--pending {
+  background: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+}
+.dr-badge--accepted {
+  background: rgba(13, 148, 136, 0.1);
+  color: var(--dr-teal);
+}
+.dr-badge--completed {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+.dr-badge--rejected {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+.dr-badge--cancelled {
+  background: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+}
 
 /* ─── Small action buttons ─────────────── */
 .dr-action-btn {

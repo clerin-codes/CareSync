@@ -37,7 +37,7 @@ const formatDateLabel = (value) => {
     weekday: "short",
     year: "numeric",
     month: "short",
-    day: "numeric"
+    day: "numeric",
   });
 };
 
@@ -60,7 +60,9 @@ function DoctorAvailability() {
         const data = await doctorService.getMyProfile();
         setProfileExists(true);
 
-        const availabilityEntries = Array.isArray(data.availability) ? data.availability : [];
+        const availabilityEntries = Array.isArray(data.availability)
+          ? data.availability
+          : [];
         let legacyEntries = 0;
 
         const mapped = availabilityEntries
@@ -73,7 +75,7 @@ function DoctorAvailability() {
 
             return {
               date,
-              slots: (item.slots || []).join(", ")
+              slots: (item.slots || []).join(", "),
             };
           })
           .filter(Boolean);
@@ -92,7 +94,11 @@ function DoctorAvailability() {
   }, []);
 
   const updateRow = (index, field, value) => {
-    setRows((prev) => prev.map((row, rowIndex) => (rowIndex === index ? { ...row, [field]: value } : row)));
+    setRows((prev) =>
+      prev.map((row, rowIndex) =>
+        rowIndex === index ? { ...row, [field]: value } : row,
+      ),
+    );
   };
 
   const addRow = () => {
@@ -118,7 +124,7 @@ function DoctorAvailability() {
         slots: row.slots
           .split(",")
           .map((slot) => slot.trim())
-          .filter(Boolean)
+          .filter(Boolean),
       }));
 
     if (availability.length === 0) {
@@ -145,11 +151,17 @@ function DoctorAvailability() {
   };
 
   const configuredDateCount = rows.filter((row) => row.date.trim()).length;
-  const configuredSlotCount = rows.reduce((total, row) => total + getSlotCount(row.slots), 0);
+  const configuredSlotCount = rows.reduce(
+    (total, row) => total + getSlotCount(row.slots),
+    0,
+  );
 
   const upcomingEntries = rows
     .filter((row) => row.date.trim())
-    .map((row) => ({ date: row.date.trim(), slotCount: getSlotCount(row.slots) }))
+    .map((row) => ({
+      date: row.date.trim(),
+      slotCount: getSlotCount(row.slots),
+    }))
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, 5);
 
@@ -173,9 +185,18 @@ function DoctorAvailability() {
         <div className="availability-layout">
           <form className="dr-form-card" onSubmit={handleSubmit}>
             {/* ── KPIs ── */}
-            <div style={{ display: "flex", gap: "1rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
+            <div
+              style={{
+                display: "flex",
+                gap: "1rem",
+                marginBottom: "1.5rem",
+                flexWrap: "wrap",
+              }}
+            >
               <article className="dr-stat-card" style={{ flex: 1 }}>
-                <div className="dr-stat-icon"><CalendarDays size={20} strokeWidth={1.5} /></div>
+                <div className="dr-stat-icon">
+                  <CalendarDays size={20} strokeWidth={1.5} />
+                </div>
                 <div>
                   <p className="dr-stat-label">Dates</p>
                   <p className="dr-stat-value">{configuredDateCount}</p>
@@ -183,7 +204,9 @@ function DoctorAvailability() {
                 </div>
               </article>
               <article className="dr-stat-card" style={{ flex: 1 }}>
-                <div className="dr-stat-icon dr-stat-icon--purple"><Grid3x3 size={20} strokeWidth={1.5} /></div>
+                <div className="dr-stat-icon dr-stat-icon--purple">
+                  <Grid3x3 size={20} strokeWidth={1.5} />
+                </div>
                 <div>
                   <p className="dr-stat-label">Slots</p>
                   <p className="dr-stat-value">{configuredSlotCount}</p>
@@ -194,38 +217,62 @@ function DoctorAvailability() {
 
             {legacyCount > 0 && (
               <p className="dr-form-msg dr-form-msg--error">
-                {legacyCount} legacy entry{legacyCount === 1 ? "" : "ies"} found. Save dated availability to replace.
+                {legacyCount} legacy entry{legacyCount === 1 ? "" : "ies"}{" "}
+                found. Save dated availability to replace.
               </p>
             )}
 
-            {error   && <p className="dr-form-msg dr-form-msg--error">{error}</p>}
-            {success && <p className="dr-form-msg dr-form-msg--success">{success}</p>}
+            {error && <p className="dr-form-msg dr-form-msg--error">{error}</p>}
+            {success && (
+              <p className="dr-form-msg dr-form-msg--success">{success}</p>
+            )}
 
             {/* ── Rows ── */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "1.5rem" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.75rem",
+                marginBottom: "1.5rem",
+              }}
+            >
               {rows.map((row, index) => (
-                <div className="dr-avail-row" key={`${row.date || "new"}-${index}`}>
+                <div
+                  className="dr-avail-row"
+                  key={`${row.date || "new"}-${index}`}
+                >
                   <div>
-                    <label className="dr-label" htmlFor={`avail-date-${index}`}>Date</label>
+                    <label className="dr-label" htmlFor={`avail-date-${index}`}>
+                      Date
+                    </label>
                     <input
                       id={`avail-date-${index}`}
                       className="dr-input"
                       type="date"
                       min={minDate}
                       value={row.date}
-                      onChange={(event) => updateRow(index, "date", event.target.value)}
+                      onChange={(event) =>
+                        updateRow(index, "date", event.target.value)
+                      }
                     />
                   </div>
 
                   <div>
-                    <label className="dr-label" htmlFor={`avail-slots-${index}`}>Time Slots</label>
+                    <label
+                      className="dr-label"
+                      htmlFor={`avail-slots-${index}`}
+                    >
+                      Time Slots
+                    </label>
                     <input
                       id={`avail-slots-${index}`}
                       className="dr-input"
                       type="text"
                       placeholder="09:00 AM, 10:30 AM, 02:00 PM"
                       value={row.slots}
-                      onChange={(event) => updateRow(index, "slots", event.target.value)}
+                      onChange={(event) =>
+                        updateRow(index, "slots", event.target.value)
+                      }
                     />
                   </div>
 
@@ -243,11 +290,19 @@ function DoctorAvailability() {
             </div>
 
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-              <button type="button" className="dr-btn dr-btn-outline" onClick={addRow}>
+              <button
+                type="button"
+                className="dr-btn dr-btn-outline"
+                onClick={addRow}
+              >
                 <Plus size={14} strokeWidth={1.5} />
                 Add Date
               </button>
-              <button type="submit" className="dr-btn dr-btn-primary" disabled={saving}>
+              <button
+                type="submit"
+                className="dr-btn dr-btn-primary"
+                disabled={saving}
+              >
                 <span>{saving ? "Saving…" : "Save Availability"}</span>
               </button>
             </div>
@@ -257,22 +312,52 @@ function DoctorAvailability() {
             <div className="dr-panel" style={{ marginBottom: "1rem" }}>
               <p className="dr-panel-title">Booking Logic</p>
               <ul style={{ paddingLeft: "1rem", margin: 0 }}>
-                <li style={{ fontSize: "0.78rem", color: "var(--dr-text-muted)", marginBottom: "0.5rem", lineHeight: "1.5" }}>Only listed dated slots are visible on booking pages.</li>
-                <li style={{ fontSize: "0.78rem", color: "var(--dr-text-muted)", marginBottom: "0.5rem", lineHeight: "1.5" }}>Once booked, a slot is hidden until cancelled.</li>
-                <li style={{ fontSize: "0.78rem", color: "var(--dr-text-muted)", lineHeight: "1.5" }}>Use a consistent time format so patients see clean options.</li>
+                <li
+                  style={{
+                    fontSize: "0.78rem",
+                    color: "var(--dr-text-muted)",
+                    marginBottom: "0.5rem",
+                    lineHeight: "1.5",
+                  }}
+                >
+                  Only listed dated slots are visible on booking pages.
+                </li>
+                <li
+                  style={{
+                    fontSize: "0.78rem",
+                    color: "var(--dr-text-muted)",
+                    marginBottom: "0.5rem",
+                    lineHeight: "1.5",
+                  }}
+                >
+                  Once booked, a slot is hidden until cancelled.
+                </li>
+                <li
+                  style={{
+                    fontSize: "0.78rem",
+                    color: "var(--dr-text-muted)",
+                    lineHeight: "1.5",
+                  }}
+                >
+                  Use a consistent time format so patients see clean options.
+                </li>
               </ul>
             </div>
 
             <div className="dr-panel">
               <p className="dr-panel-title">Upcoming Dates</p>
               {upcomingEntries.length === 0 ? (
-                <p className="dr-muted-note">No upcoming availability entries.</p>
+                <p className="dr-muted-note">
+                  No upcoming availability entries.
+                </p>
               ) : (
                 <ul className="dr-slot-list">
                   {upcomingEntries.map((entry, index) => (
                     <li key={`${entry.date}-${index}`}>
                       <span>{formatDateLabel(entry.date)}</span>
-                      <strong>{entry.slotCount} slot{entry.slotCount === 1 ? "" : "s"}</strong>
+                      <strong>
+                        {entry.slotCount} slot{entry.slotCount === 1 ? "" : "s"}
+                      </strong>
                     </li>
                   ))}
                 </ul>

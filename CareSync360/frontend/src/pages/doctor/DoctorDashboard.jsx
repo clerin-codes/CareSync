@@ -33,13 +33,14 @@ const formatDateLabel = (value) => {
     weekday: "short",
     year: "numeric",
     month: "short",
-    day: "numeric"
+    day: "numeric",
   });
 };
 
 const getSlotCount = (entry) => {
   if (!entry || !Array.isArray(entry.slots)) return 0;
-  return entry.slots.filter((slot) => typeof slot === "string" && slot.trim()).length;
+  return entry.slots.filter((slot) => typeof slot === "string" && slot.trim())
+    .length;
 };
 
 function DoctorDashboard() {
@@ -54,11 +55,13 @@ function DoctorDashboard() {
       try {
         const [profileData, doctorAppointments] = await Promise.all([
           doctorService.getMyProfile(),
-          appointmentService.getDoctorAppointments()
+          appointmentService.getDoctorAppointments(),
         ]);
 
         setProfile(profileData);
-        setAppointments(Array.isArray(doctorAppointments) ? doctorAppointments : []);
+        setAppointments(
+          Array.isArray(doctorAppointments) ? doctorAppointments : [],
+        );
       } catch {
         setProfile(null);
         setAppointments([]);
@@ -72,17 +75,23 @@ function DoctorDashboard() {
 
   const availabilityEntries = useMemo(
     () => (Array.isArray(profile?.availability) ? profile.availability : []),
-    [profile]
+    [profile],
   );
 
-  const availabilitySlotCount = availabilityEntries.reduce((count, entry) => count + getSlotCount(entry), 0);
+  const availabilitySlotCount = availabilityEntries.reduce(
+    (count, entry) => count + getSlotCount(entry),
+    0,
+  );
 
   const totalAppointments = appointments.length;
-  const pendingAppointments = appointments.filter((appointment) => appointment.status === "PENDING").length;
+  const pendingAppointments = appointments.filter(
+    (appointment) => appointment.status === "PENDING",
+  ).length;
 
   const todayIsoDate = toLocalIsoDate(new Date());
   const todayAppointments = appointments.filter(
-    (appointment) => toLocalIsoDate(appointment.appointmentDate) === todayIsoDate
+    (appointment) =>
+      toLocalIsoDate(appointment.appointmentDate) === todayIsoDate,
   ).length;
 
   const profileCompletion = Math.round(
@@ -90,20 +99,23 @@ function DoctorDashboard() {
       Boolean(profile?.specialization),
       Number(profile?.experience) > 0,
       Boolean(profile?.hospital),
-      Number(profile?.consultationFee) > 0
+      Number(profile?.consultationFee) > 0,
     ].filter(Boolean).length /
       4) *
-      100
+      100,
   );
 
   const availabilityPreview = availabilityEntries
     .map((entry, index) => {
-      const label = formatDateLabel(entry?.date) || entry?.day || `Entry ${index + 1}`;
-      const dateValue = formatDateLabel(entry?.date) ? new Date(entry.date).getTime() : Number.POSITIVE_INFINITY;
+      const label =
+        formatDateLabel(entry?.date) || entry?.day || `Entry ${index + 1}`;
+      const dateValue = formatDateLabel(entry?.date)
+        ? new Date(entry.date).getTime()
+        : Number.POSITIVE_INFINITY;
       return {
         label,
         slotCount: getSlotCount(entry),
-        dateValue
+        dateValue,
       };
     })
     .filter((entry) => entry.slotCount > 0)
@@ -169,7 +181,9 @@ function DoctorDashboard() {
               <div>
                 <p className="dr-stat-label">Today</p>
                 <p className="dr-stat-value">{todayAppointments}</p>
-                <p className="dr-stat-desc">Appointments scheduled for today.</p>
+                <p className="dr-stat-desc">
+                  Appointments scheduled for today.
+                </p>
               </div>
             </article>
 
@@ -190,7 +204,9 @@ function DoctorDashboard() {
             {/* Quick Actions */}
             <div className="dr-panel">
               <p className="dr-panel-title">Quick Actions</p>
-              <p className="dr-panel-subtitle">Move between key tasks without leaving the dashboard.</p>
+              <p className="dr-panel-subtitle">
+                Move between key tasks without leaving the dashboard.
+              </p>
 
               <div className="dr-actions-grid">
                 <Link className="dr-action-card" to="/doctor/appointments">
@@ -199,7 +215,9 @@ function DoctorDashboard() {
                   </div>
                   <div>
                     <p className="dr-action-title">Manage Appointments</p>
-                    <p className="dr-action-desc">Accept, reject, and complete consultation requests.</p>
+                    <p className="dr-action-desc">
+                      Accept, reject, and complete consultation requests.
+                    </p>
                   </div>
                 </Link>
 
@@ -209,7 +227,9 @@ function DoctorDashboard() {
                   </div>
                   <div>
                     <p className="dr-action-title">Update Profile</p>
-                    <p className="dr-action-desc">Keep specialization, hospital and fee details current.</p>
+                    <p className="dr-action-desc">
+                      Keep specialization, hospital and fee details current.
+                    </p>
                   </div>
                 </Link>
 
@@ -219,17 +239,24 @@ function DoctorDashboard() {
                   </div>
                   <div>
                     <p className="dr-action-title">Edit Availability</p>
-                    <p className="dr-action-desc">Publish dated slots patients can book immediately.</p>
+                    <p className="dr-action-desc">
+                      Publish dated slots patients can book immediately.
+                    </p>
                   </div>
                 </Link>
 
-                <Link className="dr-action-card" to="/doctor/issue-prescription">
+                <Link
+                  className="dr-action-card"
+                  to="/doctor/issue-prescription"
+                >
                   <div className="dr-action-icon">
                     <Pill size={18} strokeWidth={1.5} />
                   </div>
                   <div>
                     <p className="dr-action-title">Issue Prescription</p>
-                    <p className="dr-action-desc">Create and store prescriptions with medicine details.</p>
+                    <p className="dr-action-desc">
+                      Create and store prescriptions with medicine details.
+                    </p>
                   </div>
                 </Link>
               </div>
@@ -269,11 +296,16 @@ function DoctorDashboard() {
                   <span>{profileCompletion}%</span>
                 </div>
                 <div className="dr-completion-bar">
-                  <div className="dr-completion-fill" style={{ width: `${profileCompletion}%` }} />
+                  <div
+                    className="dr-completion-fill"
+                    style={{ width: `${profileCompletion}%` }}
+                  />
                 </div>
               </div>
 
-              <span className="dr-panel-section-label">Upcoming Availability</span>
+              <span className="dr-panel-section-label">
+                Upcoming Availability
+              </span>
               {availabilityPreview.length === 0 ? (
                 <p className="dr-muted-note">No dated slots configured yet.</p>
               ) : (

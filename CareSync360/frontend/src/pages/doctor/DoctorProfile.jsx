@@ -10,7 +10,7 @@ function DoctorProfile() {
     specialization: "",
     experience: 0,
     hospital: "",
-    consultationFee: 0
+    consultationFee: 0,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -30,11 +30,13 @@ function DoctorProfile() {
           specialization: data.specialization || "",
           experience: data.experience || 0,
           hospital: data.hospital || "",
-          consultationFee: data.consultationFee || 0
+          consultationFee: data.consultationFee || 0,
         });
       } catch (err) {
         setProfileExists(false);
-        setError(err.response?.data?.message || "Doctor profile was not found.");
+        setError(
+          err.response?.data?.message || "Doctor profile was not found.",
+        );
       } finally {
         setLoading(false);
       }
@@ -59,7 +61,7 @@ function DoctorProfile() {
         specialization: form.specialization,
         experience: Number(form.experience),
         hospital: form.hospital,
-        consultationFee: Number(form.consultationFee)
+        consultationFee: Number(form.consultationFee),
       };
       const data = await doctorService.updateMyProfile(payload);
       setSuccess(data.message || "Profile updated successfully.");
@@ -75,7 +77,7 @@ function DoctorProfile() {
       Boolean(form.specialization.trim()),
       Number(form.experience) > 0,
       Boolean(form.hospital.trim()),
-      Number(form.consultationFee) > 0
+      Number(form.consultationFee) > 0,
     ];
 
     return Math.round((checks.filter(Boolean).length / checks.length) * 100);
@@ -99,19 +101,31 @@ function DoctorProfile() {
 
       {!loading && profileExists && (
         <div className="profile-layout">
-          <form className="dr-form-card doctor-profile-form" onSubmit={handleSubmit}>
+          <form
+            className="dr-form-card doctor-profile-form"
+            onSubmit={handleSubmit}
+          >
             <div className="dr-form-head">
               <h2>Professional Information</h2>
-              <p>These details are shown when patients view your profile and book consultations.</p>
+              <p>
+                These details are shown when patients view your profile and book
+                consultations.
+              </p>
             </div>
 
-            {error   && <p className="dr-form-msg dr-form-msg--error">{error}</p>}
-            {success && <p className="dr-form-msg dr-form-msg--success">{success}</p>}
+            {error && <p className="dr-form-msg dr-form-msg--error">{error}</p>}
+            {success && (
+              <p className="dr-form-msg dr-form-msg--success">{success}</p>
+            )}
 
             <div className="dr-form-grid">
               <div>
                 <label className="dr-label" htmlFor="specialization">
-                  <Stethoscope size={11} strokeWidth={1.5} style={{ display: "inline", marginRight: "0.3rem" }} />
+                  <Stethoscope
+                    size={11}
+                    strokeWidth={1.5}
+                    style={{ display: "inline", marginRight: "0.3rem" }}
+                  />
                   Specialization *
                 </label>
                 <input
@@ -128,7 +142,11 @@ function DoctorProfile() {
 
               <div>
                 <label className="dr-label" htmlFor="experience">
-                  <Clock size={11} strokeWidth={1.5} style={{ display: "inline", marginRight: "0.3rem" }} />
+                  <Clock
+                    size={11}
+                    strokeWidth={1.5}
+                    style={{ display: "inline", marginRight: "0.3rem" }}
+                  />
                   Experience (Years) *
                 </label>
                 <input
@@ -145,7 +163,11 @@ function DoctorProfile() {
 
               <div>
                 <label className="dr-label" htmlFor="hospital">
-                  <Building2 size={11} strokeWidth={1.5} style={{ display: "inline", marginRight: "0.3rem" }} />
+                  <Building2
+                    size={11}
+                    strokeWidth={1.5}
+                    style={{ display: "inline", marginRight: "0.3rem" }}
+                  />
                   Hospital *
                 </label>
                 <input
@@ -162,7 +184,11 @@ function DoctorProfile() {
 
               <div>
                 <label className="dr-label" htmlFor="consultationFee">
-                  <DollarSign size={11} strokeWidth={1.5} style={{ display: "inline", marginRight: "0.3rem" }} />
+                  <DollarSign
+                    size={11}
+                    strokeWidth={1.5}
+                    style={{ display: "inline", marginRight: "0.3rem" }}
+                  />
                   Consultation Fee (LKR) *
                 </label>
                 <input
@@ -179,7 +205,11 @@ function DoctorProfile() {
             </div>
 
             <div style={{ marginTop: "1.5rem" }}>
-              <button type="submit" className="dr-btn dr-btn-primary" disabled={saving}>
+              <button
+                type="submit"
+                className="dr-btn dr-btn-primary"
+                disabled={saving}
+              >
                 <span>{saving ? "Saving…" : "Save Profile"}</span>
               </button>
             </div>
@@ -188,7 +218,9 @@ function DoctorProfile() {
           <aside className="profile-side">
             <div className="dr-panel" style={{ marginBottom: "1rem" }}>
               <p className="dr-panel-title">Profile Completion</p>
-              <p className="dr-panel-subtitle">A complete profile builds patient trust before booking.</p>
+              <p className="dr-panel-subtitle">
+                A complete profile builds patient trust before booking.
+              </p>
               <div className="dr-completion-bar-wrap">
                 <div className="dr-completion-label">
                   <span>Completeness</span>
@@ -201,7 +233,10 @@ function DoctorProfile() {
                   aria-valuemax={100}
                   aria-valuenow={completion}
                 >
-                  <div className="dr-completion-fill" style={{ width: `${completion}%` }} />
+                  <div
+                    className="dr-completion-fill"
+                    style={{ width: `${completion}%` }}
+                  />
                 </div>
               </div>
             </div>
@@ -235,9 +270,36 @@ function DoctorProfile() {
             <div className="dr-panel">
               <p className="dr-panel-title">Quality Tips</p>
               <ul style={{ paddingLeft: "1rem", margin: 0 }}>
-                <li style={{ fontSize: "0.78rem", color: "var(--dr-text-muted)", marginBottom: "0.5rem", lineHeight: "1.5" }}>Use a clear specialization label patients can understand.</li>
-                <li style={{ fontSize: "0.78rem", color: "var(--dr-text-muted)", marginBottom: "0.5rem", lineHeight: "1.5" }}>Keep hospital details current if you practice in multiple locations.</li>
-                <li style={{ fontSize: "0.78rem", color: "var(--dr-text-muted)", lineHeight: "1.5" }}>Review consultation fee periodically to reflect current rates.</li>
+                <li
+                  style={{
+                    fontSize: "0.78rem",
+                    color: "var(--dr-text-muted)",
+                    marginBottom: "0.5rem",
+                    lineHeight: "1.5",
+                  }}
+                >
+                  Use a clear specialization label patients can understand.
+                </li>
+                <li
+                  style={{
+                    fontSize: "0.78rem",
+                    color: "var(--dr-text-muted)",
+                    marginBottom: "0.5rem",
+                    lineHeight: "1.5",
+                  }}
+                >
+                  Keep hospital details current if you practice in multiple
+                  locations.
+                </li>
+                <li
+                  style={{
+                    fontSize: "0.78rem",
+                    color: "var(--dr-text-muted)",
+                    lineHeight: "1.5",
+                  }}
+                >
+                  Review consultation fee periodically to reflect current rates.
+                </li>
               </ul>
             </div>
           </aside>

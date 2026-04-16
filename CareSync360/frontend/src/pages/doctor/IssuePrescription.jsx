@@ -22,7 +22,7 @@ function IssuePrescription() {
     patientId: prefilledPatientId,
     appointmentId: prefilledAppointmentId,
     notes: "",
-    medicines: [{ ...emptyMedicine }]
+    medicines: [{ ...emptyMedicine }],
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -68,13 +68,16 @@ function IssuePrescription() {
     setForm((prev) => ({
       ...prev,
       medicines: prev.medicines.map((medicine, medicineIndex) =>
-        medicineIndex === index ? { ...medicine, [field]: value } : medicine
-      )
+        medicineIndex === index ? { ...medicine, [field]: value } : medicine,
+      ),
     }));
   };
 
   const addMedicine = () => {
-    setForm((prev) => ({ ...prev, medicines: [...prev.medicines, { ...emptyMedicine }] }));
+    setForm((prev) => ({
+      ...prev,
+      medicines: [...prev.medicines, { ...emptyMedicine }],
+    }));
   };
 
   const removeMedicine = (index) => {
@@ -82,7 +85,9 @@ function IssuePrescription() {
       if (prev.medicines.length === 1) return prev;
       return {
         ...prev,
-        medicines: prev.medicines.filter((_, medicineIndex) => medicineIndex !== index)
+        medicines: prev.medicines.filter(
+          (_, medicineIndex) => medicineIndex !== index,
+        ),
       };
     });
   };
@@ -107,13 +112,17 @@ function IssuePrescription() {
         medicines: form.medicines.map((medicine) => ({
           name: medicine.name.trim(),
           dosage: medicine.dosage.trim(),
-          instructions: medicine.instructions.trim()
-        }))
+          instructions: medicine.instructions.trim(),
+        })),
       };
 
       const data = await patientService.issuePrescription(payload);
       setSuccess(data.message || "Prescription issued successfully.");
-      setForm((prev) => ({ ...prev, notes: "", medicines: [{ ...emptyMedicine }] }));
+      setForm((prev) => ({
+        ...prev,
+        notes: "",
+        medicines: [{ ...emptyMedicine }],
+      }));
       loadHistory();
     } catch (err) {
       setError(err.response?.data?.message || "Failed to issue prescription.");
@@ -149,10 +158,19 @@ function IssuePrescription() {
       />
 
       <div className="doctor-prescription-layout">
-        <form className="dr-form-card doctor-prescription-form" onSubmit={handleSubmit}>
+        <form
+          className="dr-form-card doctor-prescription-form"
+          onSubmit={handleSubmit}
+        >
           {/* Context panel */}
           <div className="dr-form-head">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+              }}
+            >
               <div>
                 <h2>Consultation Context</h2>
                 <p>Fill in notes and the medicine plan below.</p>
@@ -167,7 +185,10 @@ function IssuePrescription() {
                   Load Reports
                 </button>
               ) : (
-                <Link className="dr-btn dr-btn-outline" to="/doctor/appointments">
+                <Link
+                  className="dr-btn dr-btn-outline"
+                  to="/doctor/appointments"
+                >
                   Go to Appointments
                 </Link>
               )}
@@ -177,37 +198,65 @@ function IssuePrescription() {
           <div className="dr-summary-list" style={{ marginBottom: "1.25rem" }}>
             <div className="dr-summary-item">
               <span>Patient Link</span>
-              <strong>{hasPatientContext ? "Attached from appointment" : "Not selected"}</strong>
+              <strong>
+                {hasPatientContext
+                  ? "Attached from appointment"
+                  : "Not selected"}
+              </strong>
             </div>
             <div className="dr-summary-item">
               <span>Appointment Link</span>
-              <strong>{form.appointmentId ? "Attached" : "Not attached"}</strong>
+              <strong>
+                {form.appointmentId ? "Attached" : "Not attached"}
+              </strong>
             </div>
           </div>
 
           <div style={{ marginBottom: "1.25rem" }}>
-            <label className="dr-label" htmlFor="notes">Clinical Notes</label>
+            <label className="dr-label" htmlFor="notes">
+              Clinical Notes
+            </label>
             <textarea
               id="notes"
               className="dr-input"
               rows="4"
               style={{ resize: "vertical" }}
               value={form.notes}
-              onChange={(event) => setForm((prev) => ({ ...prev, notes: event.target.value }))}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, notes: event.target.value }))
+              }
               placeholder="Diagnosis, follow-up instructions, and caution notes"
             />
           </div>
 
           {/* Medicine plan */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "0.75rem",
+            }}
+          >
             <span className="dr-panel-title">Medicine Plan</span>
-            <button className="dr-btn dr-btn-outline" type="button" onClick={addMedicine}>
+            <button
+              className="dr-btn dr-btn-outline"
+              type="button"
+              onClick={addMedicine}
+            >
               <Plus size={13} strokeWidth={1.5} />
               Add Medicine
             </button>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "1.25rem" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "0.75rem",
+              marginBottom: "1.25rem",
+            }}
+          >
             {form.medicines.map((medicine, index) => (
               <div
                 key={`medicine-${index}`}
@@ -222,35 +271,47 @@ function IssuePrescription() {
                 }}
               >
                 <div>
-                  <label className="dr-label" htmlFor={`med-name-${index}`}>Name *</label>
+                  <label className="dr-label" htmlFor={`med-name-${index}`}>
+                    Name *
+                  </label>
                   <input
                     id={`med-name-${index}`}
                     className="dr-input"
                     type="text"
                     value={medicine.name}
-                    onChange={(event) => updateMedicine(index, "name", event.target.value)}
+                    onChange={(event) =>
+                      updateMedicine(index, "name", event.target.value)
+                    }
                     required
                   />
                 </div>
                 <div>
-                  <label className="dr-label" htmlFor={`med-dosage-${index}`}>Dosage</label>
+                  <label className="dr-label" htmlFor={`med-dosage-${index}`}>
+                    Dosage
+                  </label>
                   <input
                     id={`med-dosage-${index}`}
                     className="dr-input"
                     type="text"
                     value={medicine.dosage}
-                    onChange={(event) => updateMedicine(index, "dosage", event.target.value)}
+                    onChange={(event) =>
+                      updateMedicine(index, "dosage", event.target.value)
+                    }
                     placeholder="1 tablet twice daily"
                   />
                 </div>
                 <div>
-                  <label className="dr-label" htmlFor={`med-instr-${index}`}>Instructions</label>
+                  <label className="dr-label" htmlFor={`med-instr-${index}`}>
+                    Instructions
+                  </label>
                   <input
                     id={`med-instr-${index}`}
                     className="dr-input"
                     type="text"
                     value={medicine.instructions}
-                    onChange={(event) => updateMedicine(index, "instructions", event.target.value)}
+                    onChange={(event) =>
+                      updateMedicine(index, "instructions", event.target.value)
+                    }
                     placeholder="After meals"
                   />
                 </div>
@@ -268,10 +329,16 @@ function IssuePrescription() {
             ))}
           </div>
 
-          {error   && <p className="dr-form-msg dr-form-msg--error">{error}</p>}
-          {success && <p className="dr-form-msg dr-form-msg--success">{success}</p>}
+          {error && <p className="dr-form-msg dr-form-msg--error">{error}</p>}
+          {success && (
+            <p className="dr-form-msg dr-form-msg--success">{success}</p>
+          )}
 
-          <button className="dr-btn dr-btn-primary" type="submit" disabled={saving}>
+          <button
+            className="dr-btn dr-btn-primary"
+            type="submit"
+            disabled={saving}
+          >
             <span>{saving ? "Issuing…" : "Issue Prescription"}</span>
           </button>
         </form>
@@ -280,9 +347,18 @@ function IssuePrescription() {
         <aside className="doctor-prescription-side">
           {/* Patient Reports */}
           <div className="dr-panel" style={{ marginBottom: "1rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "0.75rem",
+              }}
+            >
               <p className="dr-panel-title">Patient Reports</p>
-              <span className="dr-badge dr-badge--accepted">{patientReports.length}</span>
+              <span className="dr-badge dr-badge--accepted">
+                {patientReports.length}
+              </span>
             </div>
 
             {patientReports.length === 0 && (
@@ -294,7 +370,13 @@ function IssuePrescription() {
             )}
 
             {patientReports.length > 0 && (
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.5rem",
+                }}
+              >
                 {patientReports.map((report) => (
                   <div
                     key={report._id}
@@ -308,11 +390,32 @@ function IssuePrescription() {
                     }}
                   >
                     <div>
-                      <p style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--dr-text)", marginBottom: "0.15rem" }}>
+                      <p
+                        style={{
+                          fontSize: "0.82rem",
+                          fontWeight: 600,
+                          color: "var(--dr-text)",
+                          marginBottom: "0.15rem",
+                        }}
+                      >
                         {report.title || "Medical Report"}
                       </p>
-                      <p style={{ fontSize: "0.7rem", color: "var(--dr-text-muted)" }}>{report.originalName}</p>
-                      <p style={{ fontSize: "0.68rem", color: "var(--dr-text-light)" }}>{formatDateTime(report.createdAt)}</p>
+                      <p
+                        style={{
+                          fontSize: "0.7rem",
+                          color: "var(--dr-text-muted)",
+                        }}
+                      >
+                        {report.originalName}
+                      </p>
+                      <p
+                        style={{
+                          fontSize: "0.68rem",
+                          color: "var(--dr-text-light)",
+                        }}
+                      >
+                        {formatDateTime(report.createdAt)}
+                      </p>
                     </div>
                     <button
                       className="dr-action-btn dr-action-btn--prescribe"
@@ -329,15 +432,32 @@ function IssuePrescription() {
 
           {/* History */}
           <div className="dr-panel">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "0.75rem",
+              }}
+            >
               <p className="dr-panel-title">Issued Prescriptions</p>
-              <span className="dr-badge dr-badge--accepted">{history.length}</span>
+              <span className="dr-badge dr-badge--accepted">
+                {history.length}
+              </span>
             </div>
 
-            {history.length === 0 && <p className="dr-muted-note">No prescriptions issued yet.</p>}
+            {history.length === 0 && (
+              <p className="dr-muted-note">No prescriptions issued yet.</p>
+            )}
 
             {history.length > 0 && (
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.5rem",
+                }}
+              >
                 {history.map((item) => (
                   <div
                     key={item._id}
@@ -347,11 +467,32 @@ function IssuePrescription() {
                       border: "1px solid var(--dr-border)",
                     }}
                   >
-                    <p style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--dr-text)", marginBottom: "0.15rem" }}>
+                    <p
+                      style={{
+                        fontSize: "0.82rem",
+                        fontWeight: 600,
+                        color: "var(--dr-text)",
+                        marginBottom: "0.15rem",
+                      }}
+                    >
                       {item.patientName || "Patient"}
                     </p>
-                    <p style={{ fontSize: "0.7rem", color: "var(--dr-text-muted)" }}>Apt: {item.appointmentId || "N/A"}</p>
-                    <p style={{ fontSize: "0.68rem", color: "var(--dr-text-light)" }}>Issued: {formatDateTime(item.issuedDate)}</p>
+                    <p
+                      style={{
+                        fontSize: "0.7rem",
+                        color: "var(--dr-text-muted)",
+                      }}
+                    >
+                      Apt: {item.appointmentId || "N/A"}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: "0.68rem",
+                        color: "var(--dr-text-light)",
+                      }}
+                    >
+                      Issued: {formatDateTime(item.issuedDate)}
+                    </p>
                   </div>
                 ))}
               </div>
