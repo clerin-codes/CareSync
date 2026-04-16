@@ -15,6 +15,9 @@ const API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 const GROQ_MODEL = "llama-3.3-70b-versatile";
 
+// Debug: Log API key status (remove in production)
+console.log("Groq API Key configured:", !!API_KEY, API_KEY ? "Yes" : "No");
+
 // ── Suggested questions ────────────────────────────────────────────────────────
 const SUGGESTIONS = [
   { emoji: "💊", text: "What does paracetamol do?" },
@@ -298,6 +301,12 @@ export default function AiChat() {
       const text = (overrideText ?? input).trim();
       if (!text || loading) return;
 
+      // Check if API key is configured
+      if (!API_KEY || !API_KEY.trim() || API_KEY.includes("your-") || API_KEY === "your-groq-api-key-here") {
+        setError("AI chat is not configured. Please set up your Groq API key in the frontend/.env file.");
+        return;
+      }
+
       setInput("");
       setError(null);
 
@@ -338,6 +347,9 @@ export default function AiChat() {
 
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
+          if (res.status === 401) {
+            throw new Error("Invalid API key. Please check your Groq API key configuration.");
+          }
           throw new Error(errData?.error?.message || `API error ${res.status}`);
         }
 

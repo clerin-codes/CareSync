@@ -1,5 +1,6 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
 import PatientNavbar from "../../components/PatientNavbar";
+import Loader from "../../components/Loader";
 import {
   getMyDocuments,
   uploadMyDocument,
@@ -17,6 +18,9 @@ const categories = [
 export default function Documents() {
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(null); // ID of document being deleted
+  const [refreshing, setRefreshing] = useState(false);
   const [filterCategory, setFilterCategory] = useState("all");
   const [search, setSearch] = useState("");
   const [file, setFile] = useState(null);
@@ -33,8 +37,12 @@ export default function Documents() {
       ? "bg-red-50 text-red-800 ring-1 ring-red-100"
       : "bg-blue-50 text-blue-800 ring-1 ring-blue-100";
 
-  const loadDocs = async () => {
-    setLoading(true);
+  const loadDocs = async (isRefresh = false) => {
+    if (isRefresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
     try {
       const data = await getMyDocuments();
       setDocs(data.documents || []);
@@ -43,6 +51,7 @@ export default function Documents() {
       setMsg(e.response?.data?.message || "Failed to load documents");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -73,13 +82,13 @@ export default function Documents() {
     try {
       setMsg("");
       setMsgType("");
+      setUploading(true);
 
-      const fd = new FormData();
-      fd.append("document", file);
-      fd.append("title", title || file.name);
-      fd.append("fileType", category);
-
-      await uploadMyDocument(fd);
+      await uploadMyDocument({
+        file,
+        title: title || file.name,
+        fileType: category,
+      });
 
       setMsgType("success");
       setMsg("✅ Document uploaded");
@@ -91,11 +100,14 @@ export default function Documents() {
     } catch (e) {
       setMsgType("error");
       setMsg(e.response?.data?.message || "Upload failed");
+    } finally {
+      setUploading(false);
     }
   };
 
   const remove = async (id) => {
     try {
+      setDeleting(id);
       await deleteMyDocument(id);
       setMsgType("success");
       setMsg("✅ Document deleted");
@@ -103,6 +115,8 @@ export default function Documents() {
     } catch (e) {
       setMsgType("error");
       setMsg(e.response?.data?.message || "Delete failed");
+    } finally {
+      setDeleting(null);
     }
   };
 
@@ -110,17 +124,6 @@ export default function Documents() {
     if (!doc?.fileUrl) return;
     window.open(doc.fileUrl, "_blank", "noopener,noreferrer");
   };
-
-  const Spinner = ({ size = 28 }) => (
-    <div className="flex flex-col items-center justify-center py-12">
-      <div
-        className="rounded-full border-3 border-teal-100 border-t-[#178d95] animate-spin"
-        style={{ width: size, height: size }}
-        aria-label="Loading"
-      />
-      <div className="text-sm text-gray-500 animate-pulse">Loading data...</div>
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-6">
@@ -197,9 +200,16 @@ export default function Documents() {
           <div className="mt-5">
             <button
               onClick={upload}
-              className="px-6 py-2.5 rounded-xl bg-[#178d95] text-white text-sm font-semibold hover:bg-[#126b73] active:scale-[0.98] transition shadow-sm hover:shadow-md hover:-translate-y-1 duration-300"
+              disabled={uploading}
+              className="px-6 py-2.5 rounded-xl bg-[#178d95] text-white text-sm font-semibold hover:bg-[#126b73] active:scale-[0.98] transition shadow-sm hover:shadow-md hover:-translate-y-1 duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#178d95] disabled:hover:translate-y-0"
             >
-              Upload Document
+              {uploading ? (
+                <>
+                  <span className="auth-spinner" /> Uploading...
+                </>
+              ) : (
+                "Upload Document"
+              )}
             </button>
           </div>
         </div>
@@ -248,15 +258,16 @@ export default function Documents() {
               My Documents ({filteredDocs.length})
             </div>
             <button
-              onClick={loadDocs}
-              className="px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-gray-700 text-sm font-medium hover:bg-teal-50 hover:border-teal-300 active:scale-[0.98] transition shadow-sm whitespace-nowrap"
+              onClick={() => loadDocs(true)}
+              disabled={refreshing}
+              className="px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-gray-700 text-sm font-medium hover:bg-teal-50 hover:border-teal-300 active:scale-[0.98] transition shadow-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Refresh
+              {refreshing ? "Refreshing..." : "Refresh"}
             </button>
           </div>
 
           {loading ? (
-            <Spinner size={38} />
+            <Loader size={38} text="Loading documents..." />
           ) : filteredDocs.length === 0 ? (
             <div className="text-sm text-gray-500">No documents found.</div>
           ) : (
@@ -284,9 +295,10 @@ export default function Documents() {
                     </button>
                     <button
                       onClick={() => remove(doc._id)}
-                      className="px-3 py-2 rounded-xl bg-gray-100 text-gray-900 text-sm hover:bg-gray-200 transition"
+                      disabled={deleting === doc._id}
+                      className="px-3 py-2 rounded-xl bg-gray-100 text-gray-900 text-sm hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Delete
+                      {deleting === doc._id ? "Deleting..." : "Delete"}
                     </button>
                   </div>
                 </div>
