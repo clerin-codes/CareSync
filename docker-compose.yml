@@ -29,6 +29,14 @@ services:
     depends_on:
       - mongodb
 
+  notification-service:
+    build: ./services/notification-service
+    container_name: notification-service
+    ports:
+      - "5006:5006"
+    env_file:
+      - ./services/notification-service/.env
+
   api-gateway:
     build: ./api-gateway
     container_name: api-gateway
@@ -39,14 +47,7 @@ services:
     depends_on:
       - auth-service
       - patient-service
-
-    notification-service:
-    build: ./services/notification-service
-    container_name: notification-service
-    ports:
-      - "5006:5006"
-    env_file:
-      - ./services/notification-service/.env
+      - notification-service
 
   frontend:
     build: ./frontend

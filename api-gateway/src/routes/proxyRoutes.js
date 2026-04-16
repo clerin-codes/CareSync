@@ -115,10 +115,10 @@ router.use(
         fixRequestBody(proxyReq, req);
       },
       error: (err, req, res) => {
-        console.error("Notification proxy error:", err.message);
+        console.error("Notification proxy error:", err);
         res.status(500).json({ message: "Gateway proxy error - Notification Service" });
-      }
-    }
+      },
+    },
   })
 );
 
