@@ -503,7 +503,7 @@ export default function LandingPage() {
 
             <h1
               className="lp-serif text-[2.5rem] md:text-6xl lg:text-7xl xl:text-8xl font-normal leading-[0.95] mb-6"
-              style={{ color: "#0d9488" }}
+              style={{ color: "#1a1a1a" }}
             >
               <BlurText
                 text="Your Health,"
@@ -522,7 +522,7 @@ export default function LandingPage() {
                   className="lp-serif text-[2.5rem] md:text-6xl lg:text-7xl xl:text-8xl font-normal leading-[0.95]"
                   stepDuration={0.5}
                 />
-                <span className="lp-serif italic">
+                <span className="lp-serif italic" style={{ color: "#0d9488" }}>
                   {" "}
                   <BlurText
                     text="Priority"
