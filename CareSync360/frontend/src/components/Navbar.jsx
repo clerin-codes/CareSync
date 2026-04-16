@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { roleHomePath, useAuth } from "../context/AuthContext";
+import logo from "../assets/logo.png";
 
 function Navbar() {
   const navigate = useNavigate();
@@ -20,19 +21,11 @@ function Navbar() {
       <div className="container site-header__inner">
         <Link to="/" className="site-brand" onClick={closeMenu}>
           <div className="site-brand__icon">
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <rect width="32" height="32" rx="8" fill="var(--color-primary)" />
-              <path
-                d="M16 8C13.79 8 12 9.79 12 12C12 13.1 12.45 14.1 13.17 14.83L14.59 13.41C14.21 13.03 14 12.55 14 12C14 10.9 14.9 10 16 10C17.1 10 18 10.9 18 12C18 12.55 17.79 13.03 17.41 13.41L18.83 14.83C19.55 14.1 20 13.1 20 12C20 9.79 18.21 8 16 8Z"
-                fill="white"
-              />
-              <path
-                d="M16 4C11.58 4 8 7.58 8 12C8 16.42 11.58 20 16 20C20.42 20 24 16.42 24 12C24 7.58 20.42 4 16 4ZM16 18C12.69 18 10 15.31 10 12C10 8.69 12.69 6 16 6C19.31 6 22 8.69 22 12C22 15.31 19.31 18 16 18Z"
-                fill="white"
-              />
-              <rect x="14" y="20" width="4" height="8" fill="white" />
-              <rect x="12" y="26" width="8" height="2" fill="white" />
-            </svg>
+            <img
+              src={logo}
+              alt="CareSync360"
+              style={{ width: 32, height: 32, borderRadius: 8 }}
+            />
           </div>
           <div className="site-brand__text">
             <span className="site-brand__name">CareSync360</span>
