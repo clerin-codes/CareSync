@@ -107,7 +107,6 @@ router.use(
 router.use(
   "/notifications",
   protect,
-  authorizeRoles("admin"),
   createProxyMiddleware({
     target: `${process.env.NOTIFICATION_SERVICE_URL}/api/notifications`,
     changeOrigin: true,

@@ -40,6 +40,14 @@ services:
       - auth-service
       - patient-service
 
+    notification-service:
+    build: ./services/notification-service
+    container_name: notification-service
+    ports:
+      - "5006:5006"
+    env_file:
+      - ./services/notification-service/.env
+
   frontend:
     build: ./frontend
     container_name: frontend
