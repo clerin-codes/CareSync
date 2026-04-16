@@ -1,7 +1,10 @@
 import axios from "axios";
 
+const rawBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:5050";
+const normalizedBaseUrl = rawBaseUrl.replace("localhost", "127.0.0.1");
+
 const api = axios.create({
-  baseURL: "http://localhost:5050/api",
+  baseURL: `${normalizedBaseUrl}/api`,
 });
 
 api.interceptors.request.use((config) => {

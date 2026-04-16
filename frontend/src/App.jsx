@@ -23,6 +23,10 @@ import PaymentPage from "./pages/patient/PaymentPage";
 
 import DoctorDashboard from "./pages/doctor/DoctorDashboard";
 import DoctorAppointments from "./pages/doctor/DoctorAppointments";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import ManagePatients from "./pages/admin/ManagePatients";
+import ManageDoctors from "./pages/admin/ManageDoctors";
+import EmergencyBoard from "./pages/admin/EmergencyBoard";
 
 
 // function LandingPage() {
@@ -84,6 +88,19 @@ export default function App() {
           {/* Doctor routes */}
           <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
           <Route path="/doctor/appointments" element={<DoctorAppointments />} />
+        </Route>
+
+        <Route
+          element={
+            <ProtectedRoute allowedRoles={["admin", "responder"]}>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/patients" element={<ManagePatients />} />
+          <Route path="/admin/doctors" element={<ManageDoctors />} />
+          <Route path="/admin/dashboard/emergencies" element={<EmergencyBoard />} />
         </Route>
 
         <Route path="*" element={<NotFound />} />
