@@ -9,10 +9,11 @@ function Footer() {
         <section className="site-footer__about">
           <h3>CareSync360</h3>
           <p>
-            Telemedicine infrastructure for appointment booking, remote consultations,
-            prescriptions, reports, payments, and coordinated follow-up care.
+            Telemedicine infrastructure for appointment booking, remote
+            consultations, prescriptions, reports, payments, and coordinated
+            follow-up care.
           </p>
-                  </section>
+        </section>
 
         <section className="site-footer__links">
           <h4>Platform</h4>
@@ -60,7 +61,10 @@ function Footer() {
       <div className="site-footer__bottom">
         <div className="container site-footer__bottom-inner">
           <p>&copy; {year} CareSync360. All rights reserved.</p>
-          <p className="site-footer__bottom-note">Designed as a production-style telemedicine SaaS for academic deployment.</p>
+          <p className="site-footer__bottom-note">
+            Designed as a production-style telemedicine SaaS for academic
+            deployment.
+          </p>
         </div>
       </div>
     </footer>

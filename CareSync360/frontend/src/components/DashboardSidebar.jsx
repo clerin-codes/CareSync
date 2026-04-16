@@ -10,26 +10,38 @@ const linksByRole = {
     { to: "/patient/payments", label: "Payments", short: "PM" },
     { to: "/patient/profile", label: "My Profile", short: "PF" },
     { to: "/patient/reports", label: "My Reports", short: "RP" },
-    { to: "/patient/prescriptions", label: "Prescriptions", short: "RX" }
+    { to: "/patient/prescriptions", label: "Prescriptions", short: "RX" },
   ],
   DOCTOR: [
     { to: "/doctor/dashboard", label: "Dashboard", short: "DB" },
     { to: "/doctor/appointments", label: "Appointments", short: "AP" },
     { to: "/doctor/profile", label: "My Profile", short: "PF" },
     { to: "/doctor/availability", label: "Availability", short: "AV" },
-    { to: "/doctor/issue-prescription", label: "Issue Prescription", short: "RX" }
+    {
+      to: "/doctor/issue-prescription",
+      label: "Issue Prescription",
+      short: "RX",
+    },
   ],
   ADMIN: [
     { to: "/admin/dashboard", label: "Dashboard", short: "DB" },
-    { to: "/admin/create-doctor-account", label: "Create Doctor Account", short: "DA" },
-    { to: "/admin/create-doctor-profile", label: "Create Doctor Profile", short: "DP" }
-  ]
+    {
+      to: "/admin/create-doctor-account",
+      label: "Create Doctor Account",
+      short: "DA",
+    },
+    {
+      to: "/admin/create-doctor-profile",
+      label: "Create Doctor Profile",
+      short: "DP",
+    },
+  ],
 };
 
 const roleHintByRole = {
   PATIENT: "Track appointments, reports, and your health records.",
   DOCTOR: "Manage availability, appointments, and prescriptions.",
-  ADMIN: "Control doctor accounts and platform configuration."
+  ADMIN: "Control doctor accounts and platform configuration.",
 };
 
 function DashboardSidebar() {
@@ -45,7 +57,9 @@ function DashboardSidebar() {
   };
 
   return (
-    <aside className={`dashboard-sidebar dashboard-sidebar--${role.toLowerCase()}`}>
+    <aside
+      className={`dashboard-sidebar dashboard-sidebar--${role.toLowerCase()}`}
+    >
       <div className="sidebar-top">
         <div className="sidebar-brand-wrap">
           <span className="sidebar-brand-mark">CS</span>
@@ -56,10 +70,15 @@ function DashboardSidebar() {
         </div>
 
         {user?.name && <p className="sidebar-user">Signed in as {user.name}</p>}
-        <p className="sidebar-role-hint">{roleHintByRole[role] || "Manage your dashboard workspace."}</p>
+        <p className="sidebar-role-hint">
+          {roleHintByRole[role] || "Manage your dashboard workspace."}
+        </p>
       </div>
 
-      <nav className="sidebar-nav" aria-label={`${role.toLowerCase()} navigation`}>
+      <nav
+        className="sidebar-nav"
+        aria-label={`${role.toLowerCase()} navigation`}
+      >
         <p className="sidebar-nav-title">Navigation</p>
         {links.map((link) => (
           <NavLink key={link.to} to={link.to}>
@@ -69,7 +88,11 @@ function DashboardSidebar() {
         ))}
       </nav>
 
-      <button type="button" className="btn btn-outline sidebar-logout" onClick={handleLogout}>
+      <button
+        type="button"
+        className="btn btn-outline sidebar-logout"
+        onClick={handleLogout}
+      >
         Logout
       </button>
     </aside>
