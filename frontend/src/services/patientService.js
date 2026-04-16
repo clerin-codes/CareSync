@@ -85,7 +85,7 @@ export const getAllMedicalHistory = async () => {
 };
 
 export const getAllDoctors = async () => {
-  const { data } = await api.get("/doctors");
+  const { data } = await api.get("/doctors/public");
   return data;
 };
 

@@ -36,18 +36,50 @@ services:
       - "5006:5006"
     env_file:
       - ./services/notification-service/.env
+  appointment-service:
+    build: ./services/appointment-service
+    container_name: appointment-service
+    ports:
+      - "5003:5003"
+    env_file:
+      - ./services/appointment-service/.env
+    depends_on:
+      - mongodb
+
+  payment-service:
+    build: ./services/payment-service
+    container_name: payment-service
+    ports:
+      - "5004:5004"
+    env_file:
+      - ./services/payment-service/.env
+    depends_on:
+      - mongodb
+
+  doctor-service:
+    build: ./services/doctor-service
+    container_name: doctor-service
+    ports:
+      - "5005:5005"
+    env_file:
+      - ./services/doctor-service/.env
+    depends_on:
+      - mongodb
 
   api-gateway:
     build: ./api-gateway
     container_name: api-gateway
     ports:
-      - "5000:5000"
+      - "5050:5050"
     env_file:
       - ./api-gateway/.env
     depends_on:
       - auth-service
       - patient-service
       - notification-service
+      - appointment-service
+      - payment-service
+      - doctor-service
 
   frontend:
     build: ./frontend

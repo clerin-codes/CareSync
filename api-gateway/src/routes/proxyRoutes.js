@@ -52,7 +52,6 @@ router.use(
 
 router.use(
   "/doctors",
-  protect,
   createProxyMiddleware({
     target: `${process.env.DOCTOR_SERVICE_URL}/api/doctors`,
     changeOrigin: true,

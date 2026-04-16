@@ -536,7 +536,7 @@ export default function Directory() {
 
                         <div className="mt-6">
                           <a
-                            href={`/appointments/book?doctorId=${active?._id}`}
+                            href={`/patient/book-appointment?doctorId=${active?._id}`}
                             className="inline-flex px-4 py-2 rounded-2xl bg-[#178d95] text-white text-sm hover:opacity-95"
                           >
                             Book Appointment
