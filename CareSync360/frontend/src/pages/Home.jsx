@@ -47,7 +47,7 @@ function Home() {
         <div className="container">
           <div className="landing-hero__layout">
             <div className="landing-hero__copy">
-              <span className="eyebrow">Smart Healthcare Platform</span>
+              <span className="eyebrow">CareSync360 Healthcare Platform</span>
               <h1>Personalized Healthcare, From Search to Follow-Up</h1>
               <p>
                 Find trusted doctors, book available slots, and manage reports, prescriptions, and payments

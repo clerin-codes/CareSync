@@ -29,8 +29,8 @@ function Navbar() {
             </svg>
           </div>
           <div className="site-brand__text">
-            <span className="site-brand__name">medicare</span>
-            <span className="site-brand__tagline">Smart Healthcare</span>
+            <span className="site-brand__name">CareSync360</span>
+            <span className="site-brand__tagline">Healthcare Platform</span>
           </div>
         </Link>
 

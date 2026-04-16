@@ -1,5 +1,5 @@
 GitHub Repository Link:
-https://github.com/thuver104/CareLine360-WebApp-DistributedSystems
+https://github.com/clerin-codes/CareSync.git
 
 YouTube Demo / Presentation Link:
 https://www.youtube.com/watch?v=REPLACE_WITH_YOUR_GROUP_VIDEO_ID

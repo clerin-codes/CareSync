@@ -48,9 +48,9 @@ function DashboardSidebar() {
     <aside className={`dashboard-sidebar dashboard-sidebar--${role.toLowerCase()}`}>
       <div className="sidebar-top">
         <div className="sidebar-brand-wrap">
-          <span className="sidebar-brand-mark">MC</span>
+          <span className="sidebar-brand-mark">CS</span>
           <div>
-            <div className="sidebar-brand">medicare</div>
+            <div className="sidebar-brand">CareSync360</div>
             <p className="sidebar-role">{role.toLowerCase()}</p>
           </div>
         </div>

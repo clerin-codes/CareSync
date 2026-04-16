@@ -7,7 +7,7 @@ function Footer() {
     <footer className="site-footer">
       <div className="container site-footer__top">
         <section className="site-footer__about">
-          <h3>medicare</h3>
+          <h3>CareSync360</h3>
           <p>
             Telemedicine infrastructure for appointment booking, remote consultations,
             prescriptions, reports, payments, and coordinated follow-up care.
@@ -45,7 +45,7 @@ function Footer() {
           <h4>Operations</h4>
           <ul>
             <li>
-              <strong>Email:</strong> care@medicare.local
+              <strong>Email:</strong> care@caresync360.local
             </li>
             <li>
               <strong>API Gateway:</strong> localhost:4000
@@ -59,7 +59,7 @@ function Footer() {
 
       <div className="site-footer__bottom">
         <div className="container site-footer__bottom-inner">
-          <p>&copy; {year} medicare. All rights reserved.</p>
+          <p>&copy; {year} CareSync360. All rights reserved.</p>
           <p className="site-footer__bottom-note">Designed as a production-style telemedicine SaaS for academic deployment.</p>
         </div>
       </div>
