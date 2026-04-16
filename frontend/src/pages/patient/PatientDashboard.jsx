@@ -294,7 +294,7 @@ export default function PatientDashboard() {
 
             <div className="grid sm:grid-cols-2 gap-5">
               <motion.a
-                href="/appointments/book"
+                href="/patient/book-appointment"
                 className="bg-white rounded-3xl shadow-sm p-5 hover:shadow-md transition"
                 variants={fadeUp}
                 initial="hidden"

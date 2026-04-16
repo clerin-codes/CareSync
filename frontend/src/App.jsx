@@ -16,6 +16,13 @@ import CreateProfile from "./pages/patient/CreateProfile";
 import PatientMedicalHistory from "./pages/patient/PatientMedicalHistory";
 import AiChat from "./pages/patient/AiChat";
 import Directory from "./pages/patient/Directory";
+import BookAppointment from "./pages/patient/BookAppointment";
+import ViewAppointments from "./pages/patient/ViewAppointments";
+import AppointmentDetail from "./pages/patient/AppointmentDetail";
+import PaymentPage from "./pages/patient/PaymentPage";
+
+import DoctorDashboard from "./pages/doctor/DoctorDashboard";
+import DoctorAppointments from "./pages/doctor/DoctorAppointments";
 
 
 // function LandingPage() {
@@ -69,6 +76,14 @@ export default function App() {
           <Route path="/patient/medical-history" element={<PatientMedicalHistory />} />
           <Route path="/patient/ai-chat" element={<AiChat />} />
           <Route path="/patient/directory" element={<Directory />} />
+          <Route path="/patient/appointments" element={<ViewAppointments />} />
+          <Route path="/patient/appointments/:id" element={<AppointmentDetail />} />
+          <Route path="/patient/book-appointment" element={<BookAppointment />} />
+          <Route path="/patient/payment/:appointmentId" element={<PaymentPage />} />
+
+          {/* Doctor routes */}
+          <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
+          <Route path="/doctor/appointments" element={<DoctorAppointments />} />
         </Route>
 
         <Route path="*" element={<NotFound />} />

@@ -9,7 +9,7 @@ export default function PatientNavbar() {
     () => [
       { label: "Home", href: "/" },
       { label: "Overview", href: "/patient/dashboard" },
-      { label: "Appointments", href: "/appointments" },
+      { label: "Appointments", href: "/patient/appointments" },
       { label: "Documents", href: "/patient/documents" },
       { label: "Medical History", href: "/patient/medical-history" },
       { label: "AI Chat", href: "/patient/ai-chat" },
@@ -50,14 +50,14 @@ export default function PatientNavbar() {
           <div className="w-9 h-9 rounded-full bg-[#178d95]/10 flex items-center justify-center">
             <div className="w-3 h-3 rounded-full bg-[#178d95]" />
           </div>
-          <span className="font-semibold text-[#178d95]">CareLine360</span>
+          <span className="font-semibold text-[#178d95]">CareSync</span>
         </motion.div>
 
         <div className="hidden md:flex items-center gap-6 text-sm text-gray-600">
           {navItems.map((item) => {
             const isActive =
-              item.href === "/appointments"
-                ? activePath.startsWith("/appointments")
+              item.href === "/patient/appointments"
+                ? activePath.startsWith("/patient/appointments") || activePath.startsWith("/patient/book-appointment") || activePath.startsWith("/patient/payment")
                 : activePath === item.href;
             return (
               <a
@@ -113,8 +113,8 @@ export default function PatientNavbar() {
         <div className="max-w-6xl mx-auto px-5 py-2 flex gap-2 overflow-x-auto">
           {navItems.map((item) => {
             const isActive =
-              item.href === "/appointments"
-                ? activePath.startsWith("/appointments")
+              item.href === "/patient/appointments"
+                ? activePath.startsWith("/patient/appointments") || activePath.startsWith("/patient/book-appointment") || activePath.startsWith("/patient/payment")
                 : activePath === item.href;
             return (
               <a
