@@ -1,0 +1,28 @@
+﻿=== Port 4000 ===
+{"service":"api-gateway","status":"running","routes":{"auth":"/auth","doctors":"/doctors","appointments":"/appointments","patients":"/patients","payments":"/payments","notifications":"/notifications"}}
+HTTP_STATUS:200
+
+=== Port 4001 ===
+{"service":"auth-service","status":"running"}
+HTTP_STATUS:200
+
+=== Port 4002 ===
+{"service":"doctor-service","status":"running"}
+HTTP_STATUS:200
+
+=== Port 4003 ===
+{"service":"appointment-service","status":"running"}
+HTTP_STATUS:200
+
+=== Port 4004 ===
+{"service":"patient-service","status":"running"}
+HTTP_STATUS:200
+
+=== Port 4005 ===
+{"service":"payment-service","status":"running"}
+HTTP_STATUS:200
+
+=== Port 4006 ===
+{"service":"notification-service","status":"running"}
+HTTP_STATUS:200
+

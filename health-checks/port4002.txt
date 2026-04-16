@@ -1,0 +1,2 @@
+{"service":"doctor-service","status":"running"}
+HTTP:200

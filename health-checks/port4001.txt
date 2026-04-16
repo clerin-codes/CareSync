@@ -1,0 +1,2 @@
+{"service":"auth-service","status":"running"}
+HTTP:200
