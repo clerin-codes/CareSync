@@ -1,5 +1,15 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
+import {
+  CalendarCheck,
+  Clock,
+  CalendarDays,
+  Grid3x3,
+  Calendar,
+  UserCircle,
+  Pill,
+  ArrowRight,
+} from "lucide-react";
 import EmptyState from "../../components/EmptyState";
 import Loader from "../../components/Loader";
 import PageHeader from "../../components/PageHeader";
@@ -23,13 +33,14 @@ const formatDateLabel = (value) => {
     weekday: "short",
     year: "numeric",
     month: "short",
-    day: "numeric"
+    day: "numeric",
   });
 };
 
 const getSlotCount = (entry) => {
   if (!entry || !Array.isArray(entry.slots)) return 0;
-  return entry.slots.filter((slot) => typeof slot === "string" && slot.trim()).length;
+  return entry.slots.filter((slot) => typeof slot === "string" && slot.trim())
+    .length;
 };
 
 function DoctorDashboard() {
@@ -44,11 +55,13 @@ function DoctorDashboard() {
       try {
         const [profileData, doctorAppointments] = await Promise.all([
           doctorService.getMyProfile(),
-          appointmentService.getDoctorAppointments()
+          appointmentService.getDoctorAppointments(),
         ]);
 
         setProfile(profileData);
-        setAppointments(Array.isArray(doctorAppointments) ? doctorAppointments : []);
+        setAppointments(
+          Array.isArray(doctorAppointments) ? doctorAppointments : [],
+        );
       } catch {
         setProfile(null);
         setAppointments([]);
@@ -62,17 +75,23 @@ function DoctorDashboard() {
 
   const availabilityEntries = useMemo(
     () => (Array.isArray(profile?.availability) ? profile.availability : []),
-    [profile]
+    [profile],
   );
 
-  const availabilitySlotCount = availabilityEntries.reduce((count, entry) => count + getSlotCount(entry), 0);
+  const availabilitySlotCount = availabilityEntries.reduce(
+    (count, entry) => count + getSlotCount(entry),
+    0,
+  );
 
   const totalAppointments = appointments.length;
-  const pendingAppointments = appointments.filter((appointment) => appointment.status === "PENDING").length;
+  const pendingAppointments = appointments.filter(
+    (appointment) => appointment.status === "PENDING",
+  ).length;
 
   const todayIsoDate = toLocalIsoDate(new Date());
   const todayAppointments = appointments.filter(
-    (appointment) => toLocalIsoDate(appointment.appointmentDate) === todayIsoDate
+    (appointment) =>
+      toLocalIsoDate(appointment.appointmentDate) === todayIsoDate,
   ).length;
 
   const profileCompletion = Math.round(
@@ -80,20 +99,23 @@ function DoctorDashboard() {
       Boolean(profile?.specialization),
       Number(profile?.experience) > 0,
       Boolean(profile?.hospital),
-      Number(profile?.consultationFee) > 0
+      Number(profile?.consultationFee) > 0,
     ].filter(Boolean).length /
       4) *
-      100
+      100,
   );
 
   const availabilityPreview = availabilityEntries
     .map((entry, index) => {
-      const label = formatDateLabel(entry?.date) || entry?.day || `Entry ${index + 1}`;
-      const dateValue = formatDateLabel(entry?.date) ? new Date(entry.date).getTime() : Number.POSITIVE_INFINITY;
+      const label =
+        formatDateLabel(entry?.date) || entry?.day || `Entry ${index + 1}`;
+      const dateValue = formatDateLabel(entry?.date)
+        ? new Date(entry.date).getTime()
+        : Number.POSITIVE_INFINITY;
       return {
         label,
         slotCount: getSlotCount(entry),
-        dateValue
+        dateValue,
       };
     })
     .filter((entry) => entry.slotCount > 0)
@@ -128,120 +150,133 @@ function DoctorDashboard() {
 
       {!loading && profile && (
         <>
-          <div className="stats-grid doctor-metric-grid">
-            <article className="stat-card stat-card--primary doctor-metric-card">
-              <div className="stat-icon doctor-stat-icon">
-                <span className="doctor-icon-text">AP</span>
+          {/* ── Stats ── */}
+          <div className="dr-stats-grid">
+            <article className="dr-stat-card">
+              <div className="dr-stat-icon">
+                <CalendarCheck size={20} strokeWidth={1.5} />
               </div>
-              <div className="stat-content">
-                <h3>Appointments</h3>
-                <div className="stat-value-wrapper">
-                  <p className="stat-value">{totalAppointments}</p>
-                </div>
-                <p className="stat-description">Total consultations assigned to you.</p>
-              </div>
-            </article>
-
-            <article className="stat-card stat-card--accent doctor-metric-card">
-              <div className="stat-icon doctor-stat-icon">
-                <span className="doctor-icon-text">PD</span>
-              </div>
-              <div className="stat-content">
-                <h3>Pending</h3>
-                <div className="stat-value-wrapper">
-                  <p className="stat-value">{pendingAppointments}</p>
-                </div>
-                <p className="stat-description">Appointment requests waiting for your decision.</p>
+              <div>
+                <p className="dr-stat-label">Appointments</p>
+                <p className="dr-stat-value">{totalAppointments}</p>
+                <p className="dr-stat-desc">Total consultations assigned.</p>
               </div>
             </article>
 
-            <article className="stat-card stat-card--secondary doctor-metric-card">
-              <div className="stat-icon doctor-stat-icon">
-                <span className="doctor-icon-text">TD</span>
+            <article className="dr-stat-card">
+              <div className="dr-stat-icon dr-stat-icon--amber">
+                <Clock size={20} strokeWidth={1.5} />
               </div>
-              <div className="stat-content">
-                <h3>Today</h3>
-                <div className="stat-value-wrapper">
-                  <p className="stat-value">{todayAppointments}</p>
-                </div>
-                <p className="stat-description">Scheduled appointments for today.</p>
+              <div>
+                <p className="dr-stat-label">Pending</p>
+                <p className="dr-stat-value">{pendingAppointments}</p>
+                <p className="dr-stat-desc">Requests awaiting your decision.</p>
               </div>
             </article>
 
-            <article className="stat-card stat-card--success doctor-metric-card">
-              <div className="stat-icon doctor-stat-icon">
-                <span className="doctor-icon-text">SL</span>
+            <article className="dr-stat-card">
+              <div className="dr-stat-icon dr-stat-icon--blue">
+                <CalendarDays size={20} strokeWidth={1.5} />
               </div>
-              <div className="stat-content">
-                <h3>Configured Slots</h3>
-                <div className="stat-value-wrapper">
-                  <p className="stat-value">{availabilitySlotCount}</p>
-                </div>
-                <p className="stat-description">Total time slots currently visible to patients.</p>
+              <div>
+                <p className="dr-stat-label">Today</p>
+                <p className="dr-stat-value">{todayAppointments}</p>
+                <p className="dr-stat-desc">
+                  Appointments scheduled for today.
+                </p>
+              </div>
+            </article>
+
+            <article className="dr-stat-card">
+              <div className="dr-stat-icon dr-stat-icon--purple">
+                <Grid3x3 size={20} strokeWidth={1.5} />
+              </div>
+              <div>
+                <p className="dr-stat-label">Configured Slots</p>
+                <p className="dr-stat-value">{availabilitySlotCount}</p>
+                <p className="dr-stat-desc">Slots visible to patients.</p>
               </div>
             </article>
           </div>
 
-          <div className="doctor-home-layout">
-            <div className="panel doctor-home-actions-panel">
-              <h2>Quick Actions</h2>
-              <p className="doctor-panel-subtitle">Move between key doctor tasks without leaving the dashboard.</p>
+          {/* ── Main layout ── */}
+          <div className="dr-home-layout">
+            {/* Quick Actions */}
+            <div className="dr-panel">
+              <p className="dr-panel-title">Quick Actions</p>
+              <p className="dr-panel-subtitle">
+                Move between key tasks without leaving the dashboard.
+              </p>
 
-              <div className="quick-actions-grid doctor-quick-actions-grid">
-                <Link className="action-card action-card--primary" to="/doctor/appointments">
-                  <div className="action-icon">
-                    <span className="doctor-icon-text">AP</span>
+              <div className="dr-actions-grid">
+                <Link className="dr-action-card" to="/doctor/appointments">
+                  <div className="dr-action-icon">
+                    <Calendar size={18} strokeWidth={1.5} />
                   </div>
-                  <div className="action-content">
-                    <h3>Manage Appointments</h3>
-                    <p>Accept, reject, and complete consultation requests.</p>
+                  <div>
+                    <p className="dr-action-title">Manage Appointments</p>
+                    <p className="dr-action-desc">
+                      Accept, reject, and complete consultation requests.
+                    </p>
                   </div>
                 </Link>
 
-                <Link className="action-card action-card--secondary" to="/doctor/profile">
-                  <div className="action-icon">
-                    <span className="doctor-icon-text">PF</span>
+                <Link className="dr-action-card" to="/doctor/profile">
+                  <div className="dr-action-icon">
+                    <UserCircle size={18} strokeWidth={1.5} />
                   </div>
-                  <div className="action-content">
-                    <h3>Update Profile</h3>
-                    <p>Keep specialization, hospital, and fee details up to date.</p>
-                  </div>
-                </Link>
-
-                <Link className="action-card action-card--accent" to="/doctor/availability">
-                  <div className="action-icon">
-                    <span className="doctor-icon-text">AV</span>
-                  </div>
-                  <div className="action-content">
-                    <h3>Edit Availability</h3>
-                    <p>Publish dated slots that patients can book immediately.</p>
+                  <div>
+                    <p className="dr-action-title">Update Profile</p>
+                    <p className="dr-action-desc">
+                      Keep specialization, hospital and fee details current.
+                    </p>
                   </div>
                 </Link>
 
-                <Link className="action-card action-card--success" to="/doctor/issue-prescription">
-                  <div className="action-icon">
-                    <span className="doctor-icon-text">RX</span>
+                <Link className="dr-action-card" to="/doctor/availability">
+                  <div className="dr-action-icon">
+                    <Clock size={18} strokeWidth={1.5} />
                   </div>
-                  <div className="action-content">
-                    <h3>Issue Prescription</h3>
-                    <p>Create and store prescriptions with medicine instructions.</p>
+                  <div>
+                    <p className="dr-action-title">Edit Availability</p>
+                    <p className="dr-action-desc">
+                      Publish dated slots patients can book immediately.
+                    </p>
+                  </div>
+                </Link>
+
+                <Link
+                  className="dr-action-card"
+                  to="/doctor/issue-prescription"
+                >
+                  <div className="dr-action-icon">
+                    <Pill size={18} strokeWidth={1.5} />
+                  </div>
+                  <div>
+                    <p className="dr-action-title">Issue Prescription</p>
+                    <p className="dr-action-desc">
+                      Create and store prescriptions with medicine details.
+                    </p>
                   </div>
                 </Link>
               </div>
             </div>
 
-            <aside className="panel doctor-summary-panel">
-              <h2>Profile Snapshot</h2>
-              <div className="doctor-summary-list">
-                <div className="doctor-summary-item">
+            {/* Profile Snapshot */}
+            <aside className="dr-panel">
+              <p className="dr-panel-title">Profile Snapshot</p>
+              <p className="dr-panel-subtitle">Your current profile details.</p>
+
+              <div className="dr-summary-list">
+                <div className="dr-summary-item">
                   <span>Specialization</span>
                   <strong>{profile.specialization || "Not set"}</strong>
                 </div>
-                <div className="doctor-summary-item">
+                <div className="dr-summary-item">
                   <span>Hospital</span>
                   <strong>{profile.hospital || "Not set"}</strong>
                 </div>
-                <div className="doctor-summary-item">
+                <div className="dr-summary-item">
                   <span>Consultation Fee</span>
                   <strong>
                     {Number(profile.consultationFee) > 0
@@ -249,17 +284,32 @@ function DoctorDashboard() {
                       : "Not set"}
                   </strong>
                 </div>
-                <div className="doctor-summary-item">
-                  <span>Profile Completion</span>
+                <div className="dr-summary-item">
+                  <span>Completion</span>
                   <strong>{profileCompletion}%</strong>
                 </div>
               </div>
 
-              <h3>Upcoming Availability</h3>
+              <div className="dr-completion-bar-wrap">
+                <div className="dr-completion-label">
+                  <span>Profile completeness</span>
+                  <span>{profileCompletion}%</span>
+                </div>
+                <div className="dr-completion-bar">
+                  <div
+                    className="dr-completion-fill"
+                    style={{ width: `${profileCompletion}%` }}
+                  />
+                </div>
+              </div>
+
+              <span className="dr-panel-section-label">
+                Upcoming Availability
+              </span>
               {availabilityPreview.length === 0 ? (
-                <p className="doctor-muted-note">No dated slots configured yet.</p>
+                <p className="dr-muted-note">No dated slots configured yet.</p>
               ) : (
-                <ul className="doctor-slot-preview-list">
+                <ul className="dr-slot-list">
                   {availabilityPreview.map((entry, index) => (
                     <li key={`${entry.label}-${index}`}>
                       <span>{entry.label}</span>

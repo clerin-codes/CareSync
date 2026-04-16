@@ -1,35 +1,67 @@
 import { NavLink, useNavigate } from "react-router-dom";
+import {
+  LayoutDashboard,
+  CalendarClock,
+  UserCircle,
+  Clock,
+  Pill,
+  Stethoscope,
+  CalendarPlus,
+  CreditCard,
+  FileText,
+  ClipboardList,
+  UserPlus,
+  ShieldCheck,
+  LogOut,
+} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import logo from "../assets/logo.png";
 
 const linksByRole = {
   PATIENT: [
-    { to: "/patient/dashboard", label: "Dashboard", short: "DB" },
-    { to: "/patient/doctors", label: "Find Doctors", short: "DR" },
-    { to: "/patient/book-appointment", label: "Book Appointment", short: "BK" },
-    { to: "/patient/appointments", label: "My Appointments", short: "AP" },
-    { to: "/patient/payments", label: "Payments", short: "PM" },
-    { to: "/patient/profile", label: "My Profile", short: "PF" },
-    { to: "/patient/reports", label: "My Reports", short: "RP" },
-    { to: "/patient/prescriptions", label: "Prescriptions", short: "RX" }
+    { to: "/patient/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/patient/doctors", label: "Find Doctors", icon: Stethoscope },
+    {
+      to: "/patient/book-appointment",
+      label: "Book Appointment",
+      icon: CalendarPlus,
+    },
+    {
+      to: "/patient/appointments",
+      label: "My Appointments",
+      icon: CalendarClock,
+    },
+    { to: "/patient/payments", label: "Payments", icon: CreditCard },
+    { to: "/patient/profile", label: "My Profile", icon: UserCircle },
+    { to: "/patient/reports", label: "My Reports", icon: FileText },
+    { to: "/patient/prescriptions", label: "Prescriptions", icon: Pill },
   ],
   DOCTOR: [
-    { to: "/doctor/dashboard", label: "Dashboard", short: "DB" },
-    { to: "/doctor/appointments", label: "Appointments", short: "AP" },
-    { to: "/doctor/profile", label: "My Profile", short: "PF" },
-    { to: "/doctor/availability", label: "Availability", short: "AV" },
-    { to: "/doctor/issue-prescription", label: "Issue Prescription", short: "RX" }
+    { to: "/doctor/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/doctor/appointments", label: "Appointments", icon: CalendarClock },
+    { to: "/doctor/profile", label: "My Profile", icon: UserCircle },
+    { to: "/doctor/availability", label: "Availability", icon: Clock },
+    { to: "/doctor/issue-prescription", label: "Prescription", icon: Pill },
   ],
   ADMIN: [
-    { to: "/admin/dashboard", label: "Dashboard", short: "DB" },
-    { to: "/admin/create-doctor-account", label: "Create Doctor Account", short: "DA" },
-    { to: "/admin/create-doctor-profile", label: "Create Doctor Profile", short: "DP" }
-  ]
+    { to: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    {
+      to: "/admin/create-doctor-account",
+      label: "Create Doctor Account",
+      icon: UserPlus,
+    },
+    {
+      to: "/admin/create-doctor-profile",
+      label: "Create Doctor Profile",
+      icon: ClipboardList,
+    },
+  ],
 };
 
 const roleHintByRole = {
   PATIENT: "Track appointments, reports, and your health records.",
   DOCTOR: "Manage availability, appointments, and prescriptions.",
-  ADMIN: "Control doctor accounts and platform configuration."
+  ADMIN: "Control doctor accounts and platform configuration.",
 };
 
 function DashboardSidebar() {
@@ -45,33 +77,46 @@ function DashboardSidebar() {
   };
 
   return (
-    <aside className={`dashboard-sidebar dashboard-sidebar--${role.toLowerCase()}`}>
+    <aside className="dashboard-sidebar">
+      {/* ── Brand ── */}
       <div className="sidebar-top">
         <div className="sidebar-brand-wrap">
-          <span className="sidebar-brand-mark">MC</span>
+          <img src={logo} alt="CareSync360" className="sidebar-brand-logo" />
           <div>
-            <div className="sidebar-brand">medicare</div>
+            <div className="sidebar-brand">
+              CareSync <span className="sidebar-brand-accent">360</span>
+            </div>
             <p className="sidebar-role">{role.toLowerCase()}</p>
           </div>
         </div>
 
         {user?.name && <p className="sidebar-user">Signed in as {user.name}</p>}
-        <p className="sidebar-role-hint">{roleHintByRole[role] || "Manage your dashboard workspace."}</p>
+        <p className="sidebar-role-hint">
+          {roleHintByRole[role] || "Manage your dashboard workspace."}
+        </p>
       </div>
 
-      <nav className="sidebar-nav" aria-label={`${role.toLowerCase()} navigation`}>
+      {/* ── Nav ── */}
+      <nav
+        className="sidebar-nav"
+        aria-label={`${role.toLowerCase()} navigation`}
+      >
         <p className="sidebar-nav-title">Navigation</p>
-        {links.map((link) => (
-          <NavLink key={link.to} to={link.to}>
-            <span className="sidebar-link-mark">{link.short}</span>
-            <span>{link.label}</span>
+        {links.map(({ to, label, icon: Icon }) => (
+          <NavLink key={to} to={to}>
+            <Icon size={16} strokeWidth={1.5} className="sidebar-nav-icon" />
+            <span>{label}</span>
           </NavLink>
         ))}
       </nav>
 
-      <button type="button" className="btn btn-outline sidebar-logout" onClick={handleLogout}>
-        Logout
-      </button>
+      {/* ── Logout ── */}
+      <div className="sidebar-logout-wrap">
+        <button type="button" className="sidebar-logout" onClick={handleLogout}>
+          <LogOut size={14} strokeWidth={1.5} />
+          Logout
+        </button>
+      </div>
     </aside>
   );
 }

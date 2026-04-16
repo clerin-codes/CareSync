@@ -1,15 +1,30 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import {
+  CheckCircle,
+  XCircle,
+  CheckSquare,
+  FileText,
+  CalendarDays,
+  Clock,
+  User,
+  Mail,
+} from "lucide-react";
 import Dialog from "../../components/ui/Dialog";
 import EmptyState from "../../components/EmptyState";
 import Loader from "../../components/Loader";
 import PageHeader from "../../components/PageHeader";
-import StatCard from "../../components/ui/StatCard";
-import StatusBadge from "../../components/ui/StatusBadge";
 import { useToast } from "../../components/ui/ToastProvider";
 import { appointmentService } from "../../services/appointmentService";
 
-const statusOptions = ["ALL", "PENDING", "ACCEPTED", "REJECTED", "CANCELLED", "COMPLETED"];
+const statusOptions = [
+  "ALL",
+  "PENDING",
+  "ACCEPTED",
+  "REJECTED",
+  "CANCELLED",
+  "COMPLETED",
+];
 
 const formatAppointmentDate = (value) => {
   const date = new Date(value);
@@ -19,7 +34,7 @@ const formatAppointmentDate = (value) => {
     weekday: "short",
     year: "numeric",
     month: "short",
-    day: "numeric"
+    day: "numeric",
   });
 };
 
@@ -31,7 +46,9 @@ function DoctorAppointments() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [rejectingAppointment, setRejectingAppointment] = useState(null);
-  const [rejectionReason, setRejectionReason] = useState("Doctor is unavailable for this slot");
+  const [rejectionReason, setRejectionReason] = useState(
+    "Doctor is unavailable for this slot",
+  );
   const [savingRejection, setSavingRejection] = useState(false);
 
   const loadAppointments = async () => {
@@ -39,10 +56,13 @@ function DoctorAppointments() {
     setError("");
 
     try {
-      const data = await appointmentService.getDoctorAppointments(status === "ALL" ? {} : { status });
+      const data = await appointmentService.getDoctorAppointments(
+        status === "ALL" ? {} : { status },
+      );
       setAppointments(Array.isArray(data) ? data : []);
     } catch (err) {
-      const message = err.response?.data?.message || "Failed to load doctor appointments.";
+      const message =
+        err.response?.data?.message || "Failed to load doctor appointments.";
       setError(message);
       toast.error("Appointments unavailable", message);
       setAppointments([]);
@@ -62,10 +82,14 @@ function DoctorAppointments() {
       await appointmentService.acceptAppointment(id);
       const message = "Appointment accepted.";
       setSuccess(message);
-      toast.success("Appointment accepted", "The patient can now proceed to payment and consultation.");
+      toast.success(
+        "Appointment accepted",
+        "The patient can now proceed to payment and consultation.",
+      );
       loadAppointments();
     } catch (err) {
-      const message = err.response?.data?.message || "Failed to accept appointment.";
+      const message =
+        err.response?.data?.message || "Failed to accept appointment.";
       setError(message);
       toast.error("Acceptance failed", message);
     }
@@ -73,7 +97,9 @@ function DoctorAppointments() {
 
   const openRejectDialog = (appointment) => {
     setRejectingAppointment(appointment);
-    setRejectionReason(appointment.rejectionReason || "Doctor is unavailable for this slot");
+    setRejectionReason(
+      appointment.rejectionReason || "Doctor is unavailable for this slot",
+    );
   };
 
   const closeRejectDialog = () => {
@@ -93,15 +119,20 @@ function DoctorAppointments() {
 
     try {
       await appointmentService.rejectAppointment(rejectingAppointment._id, {
-        rejectionReason: rejectionReason.trim() || "Doctor is unavailable for this slot"
+        rejectionReason:
+          rejectionReason.trim() || "Doctor is unavailable for this slot",
       });
       const message = "Appointment rejected.";
       setSuccess(message);
-      toast.success("Appointment rejected", "The patient will see the reason in their timeline.");
+      toast.success(
+        "Appointment rejected",
+        "The patient will see the reason in their timeline.",
+      );
       closeRejectDialog();
       loadAppointments();
     } catch (err) {
-      const message = err.response?.data?.message || "Failed to reject appointment.";
+      const message =
+        err.response?.data?.message || "Failed to reject appointment.";
       setError(message);
       toast.error("Rejection failed", message);
       setSavingRejection(false);
@@ -115,10 +146,14 @@ function DoctorAppointments() {
       await appointmentService.completeAppointment(id);
       const message = "Appointment marked as completed.";
       setSuccess(message);
-      toast.success("Consultation completed", "Prescription issuance can continue from the completed visit.");
+      toast.success(
+        "Consultation completed",
+        "Prescription issuance can continue from the completed visit.",
+      );
       loadAppointments();
     } catch (err) {
-      const message = err.response?.data?.message || "Failed to complete appointment.";
+      const message =
+        err.response?.data?.message || "Failed to complete appointment.";
       setError(message);
       toast.error("Completion failed", message);
     }
@@ -127,59 +162,94 @@ function DoctorAppointments() {
   const summary = useMemo(
     () => ({
       total: appointments.length,
-      pending: appointments.filter((appointment) => appointment.status === "PENDING").length,
-      accepted: appointments.filter((appointment) => appointment.status === "ACCEPTED").length,
-      completed: appointments.filter((appointment) => appointment.status === "COMPLETED").length
+      pending: appointments.filter(
+        (appointment) => appointment.status === "PENDING",
+      ).length,
+      accepted: appointments.filter(
+        (appointment) => appointment.status === "ACCEPTED",
+      ).length,
+      completed: appointments.filter(
+        (appointment) => appointment.status === "COMPLETED",
+      ).length,
     }),
-    [appointments]
+    [appointments],
   );
 
   return (
     <section className="dashboard-page doctor-page doctor-appointments-page">
       <PageHeader
         eyebrow="Clinical Operations"
-        title="Doctor Appointments"
-        subtitle="Review appointment requests, manage decisions with clear reasons, and move accepted consultations into video calls and prescriptions."
+        title="Appointments"
+        subtitle="Review requests, manage decisions, and move consultations forward."
         action={
-          <Link className="btn btn-outline" to="/doctor/availability">
-            Edit Availability
+          <Link className="dr-btn dr-btn-primary" to="/doctor/availability">
+            <span>Edit Availability</span>
           </Link>
         }
       />
 
-      <div className="metrics-grid">
-        <StatCard label="In View" value={summary.total} hint="Appointments returned by the current filter" />
-        <StatCard label="Pending Requests" value={summary.pending} hint="Awaiting action" accent="accent" />
-        <StatCard label="Accepted" value={summary.accepted} hint="Ready for consultation" accent="secondary" />
-        <StatCard label="Completed" value={summary.completed} hint="Finished visits" accent="success" />
+      {/* ── Summary Stat Cards ── */}
+      <div className="dr-stats-grid" style={{ marginBottom: "1.5rem" }}>
+        <article className="dr-stat-card">
+          <div className="dr-stat-icon">
+            <CalendarDays size={20} strokeWidth={1.5} />
+          </div>
+          <div>
+            <p className="dr-stat-label">In View</p>
+            <p className="dr-stat-value">{summary.total}</p>
+            <p className="dr-stat-desc">Current filter total</p>
+          </div>
+        </article>
+        <article className="dr-stat-card">
+          <div className="dr-stat-icon dr-stat-icon--amber">
+            <Clock size={20} strokeWidth={1.5} />
+          </div>
+          <div>
+            <p className="dr-stat-label">Pending</p>
+            <p className="dr-stat-value">{summary.pending}</p>
+            <p className="dr-stat-desc">Awaiting decision</p>
+          </div>
+        </article>
+        <article className="dr-stat-card">
+          <div className="dr-stat-icon dr-stat-icon--blue">
+            <CheckCircle size={20} strokeWidth={1.5} />
+          </div>
+          <div>
+            <p className="dr-stat-label">Accepted</p>
+            <p className="dr-stat-value">{summary.accepted}</p>
+            <p className="dr-stat-desc">Ready for consultation</p>
+          </div>
+        </article>
+        <article className="dr-stat-card">
+          <div className="dr-stat-icon dr-stat-icon--purple">
+            <CheckSquare size={20} strokeWidth={1.5} />
+          </div>
+          <div>
+            <p className="dr-stat-label">Completed</p>
+            <p className="dr-stat-value">{summary.completed}</p>
+            <p className="dr-stat-desc">Finished visits</p>
+          </div>
+        </article>
       </div>
 
-      <div className="panel appointments-filter-panel doctor-filter-panel">
-        <div className="appointments-filter-head">
-          <h3>Status Filter</h3>
-          <p>
-            {loading
-              ? "Loading appointments..."
-              : `${appointments.length} appointment${appointments.length === 1 ? "" : "s"} found`}
-          </p>
-        </div>
-
-        <div className="appointments-filter-actions">
-          {statusOptions.map((option) => (
-            <button
-              key={option}
-              type="button"
-              className={`btn ${status === option ? "btn-primary" : "btn-outline"}`}
-              onClick={() => setStatus(option)}
-            >
-              {option}
-            </button>
-          ))}
-        </div>
+      {/* ── Filter + status messages ── */}
+      <div className="dr-appt-filters">
+        {statusOptions.map((option) => (
+          <button
+            key={option}
+            type="button"
+            className={`dr-filter-btn${status === option ? " active" : ""}`}
+            onClick={() => setStatus(option)}
+          >
+            {option}
+          </button>
+        ))}
       </div>
 
-      {error ? <p className="form-error">{error}</p> : null}
-      {success ? <p className="form-success">{success}</p> : null}
+      {error ? <p className="dr-form-msg dr-form-msg--error">{error}</p> : null}
+      {success ? (
+        <p className="dr-form-msg dr-form-msg--success">{success}</p>
+      ) : null}
       {loading ? <Loader label="Loading appointments..." /> : null}
 
       {!loading && appointments.length === 0 ? (
@@ -189,93 +259,141 @@ function DoctorAppointments() {
         />
       ) : null}
 
+      {/* ── Appointment Cards ── */}
       {!loading && appointments.length > 0 ? (
-        <div className="doctor-appointments-grid">
+        <div>
           {appointments.map((appointment) => (
-            <article className="appointment-card" key={appointment._id}>
-              <header className="appointment-card-head">
+            <article className="dr-appt-card" key={appointment._id}>
+              <div className="dr-appt-header">
                 <div>
-                  <h3 className="appointment-patient">{appointment.patientName || "Patient"}</h3>
-                  <p className="appointment-datetime">
-                    {formatAppointmentDate(appointment.appointmentDate)} at {appointment.timeSlot || "N/A"}
+                  <p className="dr-appt-patient">
+                    {appointment.patientName || "Patient"}
                   </p>
-                </div>
-                <StatusBadge value={appointment.status} />
-              </header>
-
-              <div className="appointment-info-grid">
-                <div className="appointment-info-item">
-                  <span className="appointment-label">Patient Email</span>
-                  <span className="appointment-value">{appointment.patientEmail || "Not available"}</span>
-                </div>
-
-                <div className="appointment-info-item">
-                  <span className="appointment-label">Reason</span>
-                  <span className="appointment-value">{appointment.reason || "Not provided"}</span>
-                </div>
-
-                <div className="appointment-info-item">
-                  <span className="appointment-label">Specialization</span>
-                  <span className="appointment-value">{appointment.specialization || "General"}</span>
-                </div>
-
-                <div className="appointment-info-item">
-                  <span className="appointment-label">Consultation Fee</span>
-                  <span className="appointment-value">LKR {Number(appointment.consultationFee || 0).toLocaleString()}</span>
-                </div>
-
-                <div className="appointment-info-item appointment-info-item--full">
-                  <span className="appointment-label">Appointment ID</span>
-                  <span className="appointment-value appointment-value--mono">{appointment._id}</span>
-                </div>
-
-                {appointment.rejectionReason ? (
-                  <div className="appointment-info-item appointment-info-item--full">
-                    <span className="appointment-label">Rejection Reason</span>
-                    <span className="appointment-value">{appointment.rejectionReason}</span>
+                  <div className="dr-appt-meta">
+                    <span className="dr-appt-meta-item">
+                      <CalendarDays size={12} strokeWidth={1.5} />
+                      {formatAppointmentDate(appointment.appointmentDate)}
+                    </span>
+                    <span className="dr-appt-meta-item">
+                      <Clock size={12} strokeWidth={1.5} />
+                      {appointment.timeSlot || "N/A"}
+                    </span>
+                    {appointment.patientEmail && (
+                      <span className="dr-appt-meta-item">
+                        <Mail size={12} strokeWidth={1.5} />
+                        {appointment.patientEmail}
+                      </span>
+                    )}
                   </div>
-                ) : null}
+                </div>
+                {/* Status badge */}
+                <span
+                  className={`dr-badge dr-badge--${appointment.status.toLowerCase()}`}
+                >
+                  {appointment.status}
+                </span>
               </div>
 
-              <div className="appointment-actions">
-                {appointment.status === "PENDING" ? (
+              {appointment.reason && (
+                <div className="dr-appt-reason">
+                  <strong>Reason:</strong> {appointment.reason}
+                </div>
+              )}
+
+              {appointment.rejectionReason && (
+                <div
+                  className="dr-appt-reason"
+                  style={{ borderLeftColor: "#dc2626" }}
+                >
+                  <strong>Rejection reason:</strong>{" "}
+                  {appointment.rejectionReason}
+                </div>
+              )}
+
+              <div
+                className="dr-appt-meta"
+                style={{ marginBottom: "0.75rem", fontSize: "0.72rem" }}
+              >
+                <span>{appointment.specialization || "General"}</span>
+                <span>
+                  LKR{" "}
+                  {Number(appointment.consultationFee || 0).toLocaleString()}
+                </span>
+                <span
+                  style={{
+                    fontFamily: "monospace",
+                    color: "var(--dr-text-light)",
+                  }}
+                >
+                  {appointment._id}
+                </span>
+              </div>
+
+              <div className="dr-appt-actions">
+                {appointment.status === "PENDING" && (
                   <>
-                    <button className="btn btn-primary" type="button" onClick={() => handleAccept(appointment._id)}>
+                    <button
+                      className="dr-action-btn dr-action-btn--accept"
+                      type="button"
+                      onClick={() => handleAccept(appointment._id)}
+                    >
+                      <CheckCircle size={13} strokeWidth={1.5} />
                       Accept
                     </button>
-                    <button className="btn btn-outline" type="button" onClick={() => openRejectDialog(appointment)}>
+                    <button
+                      className="dr-action-btn dr-action-btn--reject"
+                      type="button"
+                      onClick={() => openRejectDialog(appointment)}
+                    >
+                      <XCircle size={13} strokeWidth={1.5} />
                       Reject
                     </button>
                   </>
-                ) : null}
+                )}
 
-                {appointment.status === "ACCEPTED" ? (
+                {appointment.status === "ACCEPTED" && (
                   <>
-                    {appointment.meetingLink ? (
-                      <Link className="btn btn-outline" to={`/consultation/${appointment._id}`}>
+                    {appointment.meetingLink && (
+                      <Link
+                        className="dr-action-btn dr-action-btn--prescribe"
+                        to={`/consultation/${appointment._id}`}
+                      >
+                        <User size={13} strokeWidth={1.5} />
                         Consultation Room
                       </Link>
-                    ) : null}
-                    <button className="btn btn-primary" type="button" onClick={() => handleComplete(appointment._id)}>
+                    )}
+                    <button
+                      className="dr-action-btn dr-action-btn--complete"
+                      type="button"
+                      onClick={() => handleComplete(appointment._id)}
+                    >
+                      <CheckSquare size={13} strokeWidth={1.5} />
                       Mark Completed
                     </button>
                   </>
-                ) : null}
+                )}
 
-                {appointment.status === "COMPLETED" && appointment.meetingLink ? (
-                  <Link className="btn btn-outline" to={`/consultation/${appointment._id}`}>
-                    View Consultation Room
-                  </Link>
-                ) : null}
+                {appointment.status === "COMPLETED" &&
+                  appointment.meetingLink && (
+                    <Link
+                      className="dr-action-btn dr-action-btn--prescribe"
+                      to={`/consultation/${appointment._id}`}
+                    >
+                      <User size={13} strokeWidth={1.5} />
+                      View Room
+                    </Link>
+                  )}
 
-                {(appointment.status === "ACCEPTED" || appointment.status === "COMPLETED") ? (
+                {(appointment.status === "ACCEPTED" ||
+                  appointment.status === "COMPLETED") && (
                   <Link
-                    className="btn btn-outline"
+                    className="dr-action-btn dr-action-btn--prescribe"
                     to={`/doctor/issue-prescription?patientId=${appointment.patientId}&appointmentId=${appointment._id}`}
                   >
+                    <FileText size={13} strokeWidth={1.5} />
                     Issue Prescription
                   </Link>
-                ) : null}
+                )}
               </div>
             </article>
           ))}
@@ -285,15 +403,24 @@ function DoctorAppointments() {
       <Dialog
         open={Boolean(rejectingAppointment)}
         title="Reject Appointment"
-        description="Provide the reason shown to the patient. This does not change the existing workflow or API."
+        description="Provide the reason shown to the patient."
         onClose={closeRejectDialog}
         actions={
           <>
-            <button type="button" className="btn btn-outline" onClick={closeRejectDialog}>
+            <button
+              type="button"
+              className="dr-btn dr-btn-outline"
+              onClick={closeRejectDialog}
+            >
               Cancel
             </button>
-            <button type="button" className="btn btn-primary" disabled={savingRejection} onClick={handleReject}>
-              {savingRejection ? "Saving..." : "Confirm Rejection"}
+            <button
+              type="button"
+              className="dr-btn dr-btn-primary"
+              disabled={savingRejection}
+              onClick={handleReject}
+            >
+              <span>{savingRejection ? "Saving…" : "Confirm Rejection"}</span>
             </button>
           </>
         }

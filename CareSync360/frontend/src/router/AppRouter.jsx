@@ -5,6 +5,7 @@ import ProtectedRoute from "../components/ProtectedRoute";
 import RoleGuard from "../components/RoleGuard";
 import DashboardSidebar from "../components/DashboardSidebar";
 import Home from "../pages/Home";
+import LandingPage from "../pages/LandingPage";
 import Login from "../pages/Login";
 import RegisterPatient from "../pages/RegisterPatient";
 import Doctors from "../pages/Doctors";
@@ -61,8 +62,9 @@ function NotFound() {
 export default function AppRouter() {
   return (
     <Routes>
+      <Route path="/" element={<LandingPage />} />
       <Route element={<PublicLayout />}>
-        <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register-patient" element={<RegisterPatient />} />
         <Route path="/doctors" element={<Doctors />} />
@@ -73,32 +75,62 @@ export default function AppRouter() {
         <Route element={<DashboardLayout />}>
           <Route element={<RoleGuard allowedRoles={["PATIENT"]} />}>
             <Route path="/patient/dashboard" element={<PatientDashboard />} />
-            <Route path="/patient/doctors" element={<Doctors dashboardMode />} />
-            <Route path="/patient/doctors/:id" element={<DoctorDetails dashboardMode />} />
-            <Route path="/patient/book-appointment" element={<BookAppointment />} />
+            <Route
+              path="/patient/doctors"
+              element={<Doctors dashboardMode />}
+            />
+            <Route
+              path="/patient/doctors/:id"
+              element={<DoctorDetails dashboardMode />}
+            />
+            <Route
+              path="/patient/book-appointment"
+              element={<BookAppointment />}
+            />
             <Route path="/patient/appointments" element={<MyAppointments />} />
             <Route path="/patient/payments" element={<PatientPayments />} />
             <Route path="/patient/profile" element={<PatientProfile />} />
             <Route path="/patient/reports" element={<PatientReports />} />
-            <Route path="/patient/prescriptions" element={<PatientPrescriptions />} />
+            <Route
+              path="/patient/prescriptions"
+              element={<PatientPrescriptions />}
+            />
           </Route>
 
           <Route element={<RoleGuard allowedRoles={["DOCTOR"]} />}>
             <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
             <Route path="/doctor/profile" element={<DoctorProfile />} />
-            <Route path="/doctor/availability" element={<DoctorAvailability />} />
-            <Route path="/doctor/appointments" element={<DoctorAppointments />} />
-            <Route path="/doctor/issue-prescription" element={<IssuePrescription />} />
+            <Route
+              path="/doctor/availability"
+              element={<DoctorAvailability />}
+            />
+            <Route
+              path="/doctor/appointments"
+              element={<DoctorAppointments />}
+            />
+            <Route
+              path="/doctor/issue-prescription"
+              element={<IssuePrescription />}
+            />
           </Route>
 
           <Route element={<RoleGuard allowedRoles={["ADMIN"]} />}>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/admin/create-doctor-account" element={<CreateDoctorAccount />} />
-            <Route path="/admin/create-doctor-profile" element={<CreateDoctorProfile />} />
+            <Route
+              path="/admin/create-doctor-account"
+              element={<CreateDoctorAccount />}
+            />
+            <Route
+              path="/admin/create-doctor-profile"
+              element={<CreateDoctorProfile />}
+            />
           </Route>
 
           <Route element={<RoleGuard allowedRoles={["PATIENT", "DOCTOR"]} />}>
-            <Route path="/consultation/:appointmentId" element={<ConsultationRoom />} />
+            <Route
+              path="/consultation/:appointmentId"
+              element={<ConsultationRoom />}
+            />
           </Route>
         </Route>
       </Route>
