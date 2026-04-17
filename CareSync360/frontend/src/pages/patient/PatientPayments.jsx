@@ -84,7 +84,7 @@ function PatientPayments() {
   const billableAppointments = useMemo(
     () =>
       appointments
-        .filter((appointment) => ["ACCEPTED", "COMPLETED"].includes(appointment.status))
+        .filter((appointment) => ["PENDING", "ACCEPTED", "COMPLETED"].includes(appointment.status))
         .sort((left, right) => new Date(right.appointmentDate) - new Date(left.appointmentDate)),
     [appointments]
   );
@@ -93,7 +93,7 @@ function PatientPayments() {
     const paidPayments = payments.filter((payment) => payment.status === "PAID");
     const pendingPayments = billableAppointments.filter((appointment) => {
       const payment = paymentByAppointment[appointment._id];
-      return appointment.status === "ACCEPTED" && payment?.status !== "PAID";
+      return ["PENDING", "ACCEPTED"].includes(appointment.status) && payment?.status !== "PAID";
     });
 
     return {
@@ -142,7 +142,7 @@ function PatientPayments() {
       />
 
       <div className="metrics-grid">
-        <StatCard label="Ready To Pay" value={summary.readyToPay} hint="Accepted consultations awaiting payment" />
+        <StatCard label="Ready To Pay" value={summary.readyToPay} hint="Consultations awaiting payment" />
         <StatCard label="Paid Records" value={summary.paid} hint="Completed checkout records" accent="success" />
         <StatCard
           label="Recorded Revenue"
@@ -150,7 +150,7 @@ function PatientPayments() {
           hint="Based on payment-service data only"
           accent="accent"
         />
-        <StatCard label="Billing Items" value={summary.consultations} hint="Accepted or completed consultations" accent="secondary" />
+        <StatCard label="Billing Items" value={summary.consultations} hint="Pending, accepted, or completed consultations" accent="secondary" />
       </div>
 
       <div className="panel payment-policy-panel">
@@ -166,8 +166,8 @@ function PatientPayments() {
 
       {!loading && billableAppointments.length === 0 ? (
         <EmptyState
-          title="No accepted consultations yet"
-          message="Payments become actionable after a doctor accepts an appointment."
+          title="No consultations to pay for"
+          message="Book an appointment to start a new payment."
           action={
             <Link className="btn btn-primary" to="/patient/book-appointment">
               Book Appointment
@@ -181,7 +181,8 @@ function PatientPayments() {
           {billableAppointments.map((appointment) => {
             const payment = paymentByAppointment[appointment._id];
             const paymentStatus = payment?.status || "PENDING";
-            const isReadyForPayment = appointment.status === "ACCEPTED" && paymentStatus !== "PAID";
+            const isReadyForPayment =
+              ["PENDING", "ACCEPTED"].includes(appointment.status) && paymentStatus !== "PAID";
 
             return (
               <article
@@ -261,7 +262,7 @@ function PatientPayments() {
                     <span className="payment-card__caption">
                       {paymentStatus === "PAID"
                         ? "This consultation has already been paid."
-                        : "Payment becomes available after acceptance."}
+                        : "Payment is not available for this appointment."}
                     </span>
                   )}
                 </div>
