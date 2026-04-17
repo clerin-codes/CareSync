@@ -193,23 +193,75 @@ export default function PatientMedicalHistory() {
       setLoading(true);
       setErr("");
       try {
-        const [meRes, recRes, preRes] = await Promise.all([
-          api.get("/patients/me"),
-          api.get("/patients/me/medical-record"),
-          api.get("/patients/me/prescription"),
-        ]);
+        // First get the patient profile
+        const profileRes = await api.get("/patients/me");
+        setMe(profileRes.data);
 
-        const recList = normalizeList(recRes.data).sort(
-          (a, b) => new Date(b.visitDate) - new Date(a.visitDate),
-        );
-        const preList = normalizeList(preRes.data);
+        // Then try to get medical history
+        try {
+          const historyRes = await getAllMedicalHistory();
 
-        setMe(meRes.data);
-        setRecords(recList);
-        setPrescriptions(preList);
-        setSelected(recList[0] || null);
+          // Handle the current medicalHistory structure
+          const medicalHistory = historyRes.medicalHistory || {};
+
+          // Create mock records from medical history for display
+          const mockRecords = [];
+          if (medicalHistory.chronicDiseases && medicalHistory.chronicDiseases.length > 0) {
+            mockRecords.push({
+              _id: "chronic-diseases",
+              visitDate: new Date().toISOString(),
+              visitType: "chronic",
+              diagnosis: "Chronic Conditions",
+              notes: `Chronic diseases: ${medicalHistory.chronicDiseases.join(", ")}`,
+              doctorName: "Primary Care Physician"
+            });
+          }
+          if (medicalHistory.surgeries && medicalHistory.surgeries.length > 0) {
+            mockRecords.push({
+              _id: "surgeries",
+              visitDate: new Date().toISOString(),
+              visitType: "surgery",
+              diagnosis: "Surgical History",
+              notes: `Surgeries: ${medicalHistory.surgeries.join(", ")}`,
+              doctorName: "Surgeon"
+            });
+          }
+
+          const recList = mockRecords.sort(
+            (a, b) => new Date(b.visitDate) - new Date(a.visitDate),
+          );
+
+          // Create mock prescriptions from medications
+          const mockPrescriptions = (medicalHistory.medications || []).map((med, index) => ({
+            _id: `med-${index}`,
+            medicationName: med,
+            dosage: "As prescribed",
+            frequency: "As needed",
+            duration: "Ongoing",
+            instructions: "Follow doctor's instructions"
+          }));
+
+          setRecords(recList);
+          setPrescriptions(mockPrescriptions);
+          setSelected(recList[0] || null);
+        } catch (historyError) {
+          // If medical history fails, just show empty state
+          console.warn("Medical history not available:", historyError.message);
+          setRecords([]);
+          setPrescriptions([]);
+          setSelected(null);
+        }
       } catch (e) {
-        setErr(e?.response?.data?.message || "Failed to load medical history");
+        // Handle different error cases
+        if (e?.response?.status === 404 && e?.response?.data?.message === "Patient profile not found") {
+          setErr("Please create your patient profile first to view medical history.");
+          setMe(null);
+          setRecords([]);
+          setPrescriptions([]);
+          setSelected(null);
+        } else {
+          setErr(e?.response?.data?.message || "Failed to load patient profile");
+        }
       } finally {
         setLoading(false);
       }
@@ -291,9 +343,19 @@ export default function PatientMedicalHistory() {
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              className="mb-4 p-3 rounded-xl bg-red-50 text-red-700 text-sm border border-red-100"
+              className="mb-4 p-4 rounded-xl bg-red-50 text-red-700 border border-red-100"
             >
-              {err}
+              <div className="flex items-center justify-between">
+                <div className="text-sm">{err}</div>
+                {err.includes("create your patient profile") && (
+                  <a
+                    href="/patient/create-profile"
+                    className="px-3 py-1 bg-red-600 text-white text-xs rounded-lg hover:bg-red-700 transition"
+                  >
+                    Create Profile
+                  </a>
+                )}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -358,9 +420,21 @@ export default function PatientMedicalHistory() {
             </div>
 
             <div className="mt-4 space-y-3 max-h-[520px] overflow-auto pr-1">
-              {filtered.length === 0 ? (
-                <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm text-gray-600">
-                  No records found.
+              {records.length === 0 ? (
+                <div className="p-8 rounded-2xl bg-gray-50 border border-gray-100 text-center">
+                  <div className="text-gray-400 mb-3">
+                    <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <div className="text-gray-600 font-medium mb-1">No Medical History Yet</div>
+                  <div className="text-sm text-gray-500">
+                    Your medical records and prescriptions will appear here once you have visits with healthcare providers.
+                  </div>
+                </div>
+              ) : filtered.length === 0 ? (
+                <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm text-gray-600 text-center">
+                  No records match your search criteria.
                 </div>
               ) : (
                 filtered.map((r) => {
@@ -431,7 +505,19 @@ export default function PatientMedicalHistory() {
             custom={1}
           >
             <div className="max-h-[520px] overflow-auto pr-1">
-              {!selected ? (
+              {!selected && records.length === 0 ? (
+                <div className="p-8 rounded-2xl bg-gray-50 border border-gray-100 text-center">
+                  <div className="text-gray-400 mb-3">
+                    <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <div className="text-gray-600 font-medium mb-1">Welcome to Your Medical History</div>
+                  <div className="text-sm text-gray-500">
+                    This is where you'll find all your medical records, diagnoses, and prescriptions from your healthcare visits.
+                  </div>
+                </div>
+              ) : !selected ? (
                 <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm text-gray-600">
                   Select a record to view details.
                 </div>

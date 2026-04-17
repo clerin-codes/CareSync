@@ -70,7 +70,7 @@ services:
     build: ./api-gateway
     container_name: api-gateway
     ports:
-      - "5050:5050"
+      - "5000:5000"
     env_file:
       - ./api-gateway/.env
     depends_on:

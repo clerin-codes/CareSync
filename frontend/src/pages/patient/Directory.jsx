@@ -85,8 +85,8 @@ export default function Directory() {
       setErr("");
       try {
         const [hRes, dRes] = await Promise.all([
-          api.get("/patients/hospital"),
-          api.get("/patients/doctor"),
+          api.get("/hospitals"),
+          api.get("/doctors"),
         ]);
 
         const hList = normalizeList(hRes.data).sort((a, b) =>
@@ -112,32 +112,12 @@ export default function Directory() {
 
   const openHospital = async (h) => {
     setSelectedHospital(h);
-    setDetailLoading(true);
-    setErr("");
-    try {
-      const id = h?._id || h?.id;
-      const res = await api.get(`/patients/hospital/${id}`);
-      setSelectedHospital(res.data);
-    } catch (e) {
-      setErr(e?.response?.data?.message || "Failed to load hospital details");
-    } finally {
-      setDetailLoading(false);
-    }
+    // No need to fetch additional details since all data is already in the list
   };
 
   const openDoctor = async (d) => {
     setSelectedDoctor(d);
-    setDetailLoading(true);
-    setErr("");
-    try {
-      const id = d?._id || d?.id;
-      const res = await api.get(`/patients/doctor/${id}`);
-      setSelectedDoctor(res.data);
-    } catch (e) {
-      setErr(e?.response?.data?.message || "Failed to load doctor details");
-    } finally {
-      setDetailLoading(false);
-    }
+    // No need to fetch additional details since all data is already in the list
   };
 
   // ✅ Hospital schema fields: name, address, contact, lat, lng
@@ -274,9 +254,24 @@ export default function Directory() {
               </div>
 
               <div className="mt-4 space-y-3 max-h-[520px] overflow-auto pr-1">
-                {list.length === 0 ? (
-                  <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm text-gray-600">
-                    No results.
+                {list.length === 0 && q.trim() ? (
+                  <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm text-gray-600 text-center">
+                    No {tab} match your search.
+                  </div>
+                ) : list.length === 0 ? (
+                  <div className="p-8 rounded-2xl bg-gray-50 border border-gray-100 text-center">
+                    <div className="text-gray-400 mb-3">
+                      <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                    </div>
+                    <div className="text-gray-600 font-medium mb-1">No {tab} Available</div>
+                    <div className="text-sm text-gray-500">
+                      {tab === "hospitals"
+                        ? "No hospitals are currently registered in the system."
+                        : "No doctors are currently registered in the system."
+                      }
+                    </div>
                   </div>
                 ) : tab === "hospitals" ? (
                   list.map((h) => {
@@ -370,7 +365,19 @@ export default function Directory() {
               animate="visible"
               custom={1}
             >
-              {!active ? (
+              {!active && (tab === "hospitals" ? hospitals : doctors).length === 0 ? (
+                <div className="p-8 rounded-2xl bg-gray-50 border border-gray-100 text-center">
+                  <div className="text-gray-400 mb-3">
+                    <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                  <div className="text-gray-600 font-medium mb-1">Welcome to the Directory</div>
+                  <div className="text-sm text-gray-500">
+                    Browse {tab === "hospitals" ? "hospitals" : "doctors"} in your area and view their contact information.
+                  </div>
+                </div>
+              ) : !active ? (
                 <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm text-gray-600">
                   Select an item to view details.
                 </div>

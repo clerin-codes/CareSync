@@ -26,17 +26,17 @@ const uploadAvatar = require("../middleware/uploadAvatar");
 
 const router = express.Router();
 
-router.post("/me", protect, authorize("patient"), createMyProfile);
-router.get("/me", protect, authorize("patient"), getMyProfile);
-router.patch("/me", protect, authorize("patient"), updateMyProfile);
-router.post("/me/avatar", protect, authorize("patient"), uploadAvatar.single("avatar"), uploadMyAvatar);
-router.get("/me/dashboard", protect, authorize("patient"), getMyDashboard);
-router.post("/me/emergency", protect, authorize("patient"), createEmergencyRequest);
-router.post("/me/ai-explain", protect, authorize("patient"), aiExplainMedicalText);
-router.get("/me/medical-history", protect, authorize("patient"), getAllMedicalHistory);
-router.get("/doctors", protect, authorize("patient"), getAllDoctors);
-router.get("/hospitals", protect, authorize("patient"), getAllHospitals);
-router.get("/me/appointments", protect, authorize("patient"), getMyAppointments);
+router.post("/me", protect, authorize("patient", "admin"), createMyProfile);
+router.get("/me", protect, authorize("patient", "admin"), getMyProfile);
+router.patch("/me", protect, authorize("patient", "admin"), updateMyProfile);
+router.post("/me/avatar", protect, authorize("patient", "admin"), uploadAvatar.single("avatar"), uploadMyAvatar);
+router.get("/me/dashboard", protect, authorize("patient", "admin"), getMyDashboard);
+router.post("/me/emergency", protect, authorize("patient", "admin"), createEmergencyRequest);
+router.post("/me/ai-explain", protect, authorize("patient", "admin"), aiExplainMedicalText);
+router.get("/me/medical-history", protect, authorize("patient", "admin"), getAllMedicalHistory);
+router.get("/doctors", protect, authorize("patient", "admin"), getAllDoctors);
+router.get("/hospitals", protect, authorize("patient", "admin"), getAllHospitals);
+router.get("/me/appointments", protect, authorize("patient", "admin"), getMyAppointments);
 
 
 router.get("/", protect, authorize("admin"), getAllPatients);
