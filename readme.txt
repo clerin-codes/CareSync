@@ -1,82 +1,78 @@
-CareSync360 Deployment Guide (SE3020 Assignment 1)
+CareSync360 Setup Guide
+
+Project type: Smart Healthcare Microservices Platform
 
 1. Prerequisites
 - Node.js 18+
 - npm 9+
-- Docker Desktop (with Docker Compose)
-- Optional: Kubernetes cluster (Docker Desktop K8s / Minikube)
+- Docker Desktop (recommended for easiest startup)
+- kubectl (only if you want Kubernetes deployment)
 
-2. Project Structure
-- Root deliverables: submission.txt, readme.txt, members.txt
-- Application source: CareSync360/
+2. Project location
+- Main application folder: CareSync360
 
-3. Configure Environment Variables
-Update the following files before running:
-- CareSync360/services/auth-service/.env
-- CareSync360/services/doctor-service/.env
-- CareSync360/services/appointment-service/.env
-- CareSync360/services/patient-service/.env
-- CareSync360/services/payment-service/.env
-- CareSync360/services/notification-service/.env
+3. Quick start (recommended)
+- Open terminal in CareSync360
+- Run:
+  docker compose up --build
 
-Important values:
-- MONGO_URI
-- JWT_SECRET
-- STRIPE_SECRET_KEY (payment-service)
-- SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, EMAIL_FROM (notification-service)
-- SMSLENZ_USER_ID, SMSLENZ_API_KEY, SMSLENZ_SENDER_ID (notification-service)
+4. Access URLs
+- Frontend: http://localhost:5173
+- API Gateway: http://localhost:4000
 
-4. Run with Docker Compose
-From CareSync360/ run:
-- docker-compose up --build
+5. Main gateway route groups
+- /auth
+- /doctors
+- /appointments
+- /patients
+- /payments
+- /notifications
 
-Expected ports:
-- Frontend: 5173
-- API Gateway: 4000
-- Auth: 4001
-- Doctor: 4002
-- Appointment: 4003
-- Patient: 4004
-- Payment: 4005
-- Notification: 4006
+6. Run without Docker (local development)
+- From CareSync360, install dependencies:
+  npm install
+  npm install --prefix gateway
+  npm install --prefix services/auth-service
+  npm install --prefix services/doctor-service
+  npm install --prefix services/appointment-service
+  npm install --prefix services/patient-service
+  npm install --prefix services/payment-service
+  npm install --prefix services/notification-service
+  npm install --prefix frontend
 
-5. Application Access
-- Open frontend: http://localhost:5173
-- API gateway health: http://localhost:4000/
+- Start each service in separate terminals:
+  npm run dev --prefix gateway
+  npm run dev --prefix services/auth-service
+  npm run dev --prefix services/doctor-service
+  npm run dev --prefix services/appointment-service
+  npm run dev --prefix services/patient-service
+  npm run dev --prefix services/payment-service
+  npm run dev --prefix services/notification-service
+  npm run dev --prefix frontend
 
-6. Feature Verification Checklist
-- Auth: patient register/login, admin login
-- Admin: create doctor account + doctor profile, verify doctor
-- Patient: browse doctors, book appointment, upload/download reports, view prescriptions
-- Doctor: manage profile + availability, accept/reject/complete appointments, issue prescriptions
-- Telemedicine: consultation room opens Jitsi meeting link from accepted appointment
-- Payment: checkout session and payment records
-- Notifications: email and SMS endpoints available via notification service
+7. Optional seed data
+- From CareSync360:
+  node seed-doctors.js
 
-7. Kubernetes Deployment (Optional)
-Manifests are in CareSync360/k8s/
-Apply in order:
-- kubectl apply -f CareSync360/k8s/app-secret.yaml
-- kubectl apply -f CareSync360/k8s/mongo-pvc.yaml
-- kubectl apply -f CareSync360/k8s/mongo-deployment.yaml
-- kubectl apply -f CareSync360/k8s/mongo-service.yaml
-- kubectl apply -f CareSync360/k8s/auth-deployment.yaml
-- kubectl apply -f CareSync360/k8s/auth-service.yaml
-- kubectl apply -f CareSync360/k8s/doctor-deployment.yaml
-- kubectl apply -f CareSync360/k8s/doctor-service.yaml
-- kubectl apply -f CareSync360/k8s/appointment-deployment.yaml
-- kubectl apply -f CareSync360/k8s/appointment-service.yaml
-- kubectl apply -f CareSync360/k8s/patient-deployment.yaml
-- kubectl apply -f CareSync360/k8s/patient-service.yaml
-- kubectl apply -f CareSync360/k8s/payment-deployment.yaml
-- kubectl apply -f CareSync360/k8s/payment-service.yaml
-- kubectl apply -f CareSync360/k8s/notification-deployment.yaml
-- kubectl apply -f CareSync360/k8s/notification-service.yaml
-- kubectl apply -f CareSync360/k8s/gateway-deployment.yaml
-- kubectl apply -f CareSync360/k8s/gateway-service.yaml
-- kubectl apply -f CareSync360/k8s/frontend-deployment.yaml
-- kubectl apply -f CareSync360/k8s/frontend-service.yaml
+Demo credentials after seed:
+- Admin: admin@hospital.com / admin123
+- Seeded doctors password: password123
 
-8. Notes
-- This project follows microservices architecture with API gateway routing.
-- For final submission, ensure submission.txt contains valid GitHub and YouTube links.
+8. Recommended feature demo flow
+- Register patient account
+- Login as admin and create doctor account/profile
+- Login as doctor and set availability
+- Login as patient and book appointment
+- Login as doctor and accept appointment
+- Login as patient and make payment
+- Login as doctor and mark appointment completed
+- Login as doctor and issue prescription
+- Login as patient and view reports/prescriptions
+
+9. Kubernetes deployment
+- Deployment files are in CareSync360/k8s
+- Read CareSync360/k8s/README.md for deployment order
+
+10. Stop project
+- If running with Docker Compose:
+  docker compose down
