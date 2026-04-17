@@ -79,6 +79,7 @@ const createMyProfile = async (req, res) => {
       patient,
     });
   } catch (error) {
+    console.error("Error creating profile:", error);
     return res.status(500).json({
       message: "Failed to create profile",
       error: error.message,

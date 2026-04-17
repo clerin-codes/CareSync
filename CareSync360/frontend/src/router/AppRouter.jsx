@@ -22,6 +22,7 @@ import PatientPayments from "../pages/patient/PatientPayments";
 // import PatientProfile from "../pages/patient/PatientProfile";
 // import PatientReports from "../pages/patient/PatientReports";
 // import PatientPrescriptions from "../pages/patient/PatientPrescriptions";
+import CreateProfile from "../pages/patient/CreateProfile";
 import DoctorDashboard from "../pages/doctor/DoctorDashboard";
 import DoctorProfile from "../pages/doctor/DoctorProfile";
 import DoctorAvailability from "../pages/doctor/DoctorAvailability";
@@ -99,6 +100,7 @@ export default function AppRouter() {
             <Route path="/patient/ai-chat" element={<AiChat />} />
             <Route path="/patient/directory" element={<Directory />} />
             <Route path="/patient/documents" element={<Document />} />
+            <Route path="/patient/create-profile" element={<CreateProfile />} />
             {/* <Route path="/patient/reports" element={<PatientReports />} /> */}
             {/* <Route
               path="/patient/prescriptions"
