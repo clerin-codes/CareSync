@@ -1,9 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import PageHeader from "../../components/PageHeader";
+import BookingStepper from "../../components/appointments/BookingStepper";
+import DoctorStep from "../../components/appointments/DoctorStep";
+import ScheduleStep from "../../components/appointments/ScheduleStep";
+import ReasonStep from "../../components/appointments/ReasonStep";
+import ConfirmStep from "../../components/appointments/ConfirmStep";
+import { useToast } from "../../components/ui/ToastProvider";
 import { appointmentService } from "../../services/appointmentService";
 import { doctorService } from "../../services/doctorService";
+import { paymentService } from "../../services/paymentService";
 import { formatCurrency } from "../../utils/formatters";
+
+const STEP_LABELS = ["Doctor", "Schedule", "Reason", "Confirm"];
 
 const getTodayLocalDate = () => {
   const now = new Date();
@@ -25,19 +34,21 @@ const formatAppointmentDate = (value) => {
 
 function BookAppointment() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const toast = useToast();
   const preselectedDoctorId = searchParams.get("doctorId") || "";
   const preselectedDate = searchParams.get("appointmentDate") || "";
   const preselectedTimeSlot = searchParams.get("timeSlot") || "";
   const minBookingDate = useMemo(() => getTodayLocalDate(), []);
 
+  const [step, setStep] = useState(0);
   const [doctors, setDoctors] = useState([]);
   const [loadingDoctors, setLoadingDoctors] = useState(true);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [availableSlots, setAvailableSlots] = useState([]);
   const [slotError, setSlotError] = useState("");
-  const [saving, setSaving] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [form, setForm] = useState({
     doctorProfileId: preselectedDoctorId,
     appointmentDate: preselectedDate,
@@ -98,169 +109,170 @@ function BookAppointment() {
     loadAvailableSlots(form.doctorProfileId, form.appointmentDate);
   }, [form.doctorProfileId, form.appointmentDate, loadAvailableSlots]);
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
+  const selectDoctor = (doctorProfileId) => {
     setError("");
-    setSuccess("");
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => ({ ...prev, doctorProfileId }));
   };
 
-  const selectSlot = (slot) => {
+  const setAppointmentDate = (appointmentDate) => {
     setError("");
-    setSuccess("");
-    setForm((prev) => ({ ...prev, timeSlot: slot }));
+    setForm((prev) => ({ ...prev, appointmentDate }));
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const selectSlot = (timeSlot) => {
     setError("");
-    setSuccess("");
+    setForm((prev) => ({ ...prev, timeSlot }));
+  };
 
-    if (!form.timeSlot) {
-      setError("Select a time slot to continue.");
+  const setReason = (reason) => {
+    setError("");
+    setForm((prev) => ({ ...prev, reason }));
+  };
+
+  const canAdvance = useMemo(() => {
+    switch (step) {
+      case 0:
+        return Boolean(form.doctorProfileId);
+      case 1:
+        return Boolean(form.appointmentDate && form.timeSlot);
+      case 2:
+        return form.reason.trim().length > 0;
+      case 3:
+        return true;
+      default:
+        return false;
+    }
+  }, [step, form]);
+
+  const goNext = () => {
+    setError("");
+    if (!canAdvance) return;
+    setStep((prev) => Math.min(prev + 1, STEP_LABELS.length - 1));
+  };
+
+  const goBack = () => {
+    setError("");
+    setStep((prev) => Math.max(prev - 1, 0));
+  };
+
+  const confirmAndCheckout = async () => {
+    setError("");
+    setSubmitting(true);
+
+    let appointmentId = null;
+    try {
+      const data = await appointmentService.bookAppointment(form);
+      appointmentId = data.appointment?._id;
+      if (!appointmentId) {
+        throw new Error("Appointment creation did not return an id");
+      }
+    } catch (err) {
+      const message = err.response?.data?.message || "Failed to book appointment.";
+      setError(message);
+      toast.error("Booking failed", message);
+      setSubmitting(false);
       return;
     }
 
-    setSaving(true);
-
     try {
-      const data = await appointmentService.bookAppointment(form);
-      setSuccess(data.message || "Appointment booked successfully.");
-      setForm((prev) => ({ ...prev, reason: "" }));
-      await loadAvailableSlots(form.doctorProfileId, form.appointmentDate);
+      const result = await paymentService.createCheckoutSession({
+        appointmentId,
+        amount: Number(selectedDoctor?.consultationFee || 0)
+      });
+
+      if (!result.checkoutUrl) {
+        throw new Error("Checkout URL was not returned");
+      }
+
+      toast.success("Appointment booked", "Redirecting you to secure checkout...");
+      window.location.assign(result.checkoutUrl);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to book appointment.");
-    } finally {
-      setSaving(false);
+      const message = err.response?.data?.message || "Unable to start checkout. You can pay from the Payments tab.";
+      toast.info("Appointment saved", message);
+      navigate(`/patient/payments?appointmentId=${encodeURIComponent(appointmentId)}`);
     }
   };
-
-  const slotStatusText = useMemo(() => {
-    if (!form.doctorProfileId || !form.appointmentDate) {
-      return "Choose doctor and date to view slots";
-    }
-    if (loadingSlots) {
-      return "Checking slot availability...";
-    }
-    if (slotError) {
-      return "Could not load slots";
-    }
-    if (availableSlots.length === 0) {
-      return "No slots available for this day";
-    }
-    return `${availableSlots.length} slot${availableSlots.length === 1 ? "" : "s"} available`;
-  }, [form.doctorProfileId, form.appointmentDate, loadingSlots, slotError, availableSlots.length]);
 
   return (
     <section className="dashboard-page book-appointment-page">
       <PageHeader
         title="Book Appointment"
-        subtitle="Fill in your consultation details and pick an available slot."
+        subtitle="Follow the steps to schedule your consultation and complete payment."
       />
 
       <div className="booking-layout">
-        <form className="form-card booking-form-card" onSubmit={handleSubmit}>
-          <div className="booking-steps">
-            <span className={`booking-step ${form.doctorProfileId ? "booking-step--active" : ""}`}>1. Doctor</span>
-            <span className={`booking-step ${form.appointmentDate ? "booking-step--active" : ""}`}>2. Date</span>
-            <span className={`booking-step ${form.timeSlot ? "booking-step--active" : ""}`}>3. Time Slot</span>
-            <span className={`booking-step ${form.reason.trim() ? "booking-step--active" : ""}`}>4. Reason</span>
+        <div className="form-card booking-form-card">
+          <BookingStepper steps={STEP_LABELS} currentStep={step} />
+
+          <div className="booking-step-content">
+            {step === 0 && (
+              <DoctorStep
+                doctors={doctors}
+                loading={loadingDoctors}
+                selectedId={form.doctorProfileId}
+                onSelect={selectDoctor}
+              />
+            )}
+
+            {step === 1 && (
+              <ScheduleStep
+                appointmentDate={form.appointmentDate}
+                minBookingDate={minBookingDate}
+                timeSlot={form.timeSlot}
+                availableSlots={availableSlots}
+                loadingSlots={loadingSlots}
+                slotError={slotError}
+                onDateChange={setAppointmentDate}
+                onSlotSelect={selectSlot}
+              />
+            )}
+
+            {step === 2 && <ReasonStep reason={form.reason} onChange={setReason} />}
+
+            {step === 3 && (
+              <ConfirmStep
+                doctor={selectedDoctor}
+                appointmentDate={form.appointmentDate}
+                timeSlot={form.timeSlot}
+                reason={form.reason}
+                onEdit={setStep}
+              />
+            )}
           </div>
 
-          <div className="form-grid two-col booking-form-grid">
-            <label className="span-2">
-              Doctor
-              <select
-                name="doctorProfileId"
-                value={form.doctorProfileId}
-                onChange={handleChange}
-                required
-                disabled={loadingDoctors || saving}
-              >
-                <option value="">
-                  {loadingDoctors ? "Loading doctors..." : "Select a doctor"}
-                </option>
-                {doctors.map((doctor) => (
-                  <option key={doctor._id} value={doctor._id}>
-                    {doctor.name} - {doctor.specialization}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label>
-              Appointment Date
-              <input
-                type="date"
-                name="appointmentDate"
-                value={form.appointmentDate}
-                onChange={handleChange}
-                min={minBookingDate}
-                required
-                disabled={saving}
-              />
-            </label>
-
-            <div className="booking-slot-meta">
-              <p className="booking-field-label">Slot Availability</p>
-              <p className="booking-slot-status">{slotStatusText}</p>
-            </div>
-
-            <div className="booking-slot-picker span-2">
-              <p className="booking-field-label">Time Slot</p>
-              <input type="hidden" name="timeSlot" value={form.timeSlot} />
-
-              {!form.doctorProfileId || !form.appointmentDate ? (
-                <div className="slot-grid-empty">Select a doctor and date to load slots.</div>
-              ) : loadingSlots ? (
-                <div className="slot-grid-empty">Loading available slots...</div>
-              ) : availableSlots.length === 0 ? (
-                <div className="slot-grid-empty">No available slots for this date. Try another day.</div>
-              ) : (
-                <div className="slot-grid">
-                  {availableSlots.map((slot) => (
-                    <button
-                      key={slot}
-                      type="button"
-                      className={`slot-chip ${form.timeSlot === slot ? "slot-chip--active" : ""}`}
-                      onClick={() => selectSlot(slot)}
-                      aria-pressed={form.timeSlot === slot}
-                      aria-label={`Select time slot ${slot}`}
-                      disabled={saving}
-                    >
-                      {slot}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <label className="span-2">
-              Consultation Reason
-              <textarea
-                name="reason"
-                value={form.reason}
-                onChange={handleChange}
-                rows="4"
-                placeholder="Describe symptoms, concerns, or what you want to discuss"
-                required
-                disabled={saving}
-                maxLength={500}
-              />
-            </label>
-          </div>
-
-          {slotError && <p className="form-error">{slotError}</p>}
           {error && <p className="form-error">{error}</p>}
-          {success && <p className="form-success">{success}</p>}
 
-          <div className="booking-footer">
-            <p className="booking-note">Your selected slot is temporarily reserved once booking is submitted.</p>
-            <button className="btn btn-primary booking-submit-btn" type="submit" disabled={saving || !form.timeSlot}>
-              {saving ? "Booking..." : "Confirm Appointment"}
+          <div className="booking-footer booking-footer--wizard">
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={goBack}
+              disabled={step === 0 || submitting}
+            >
+              Back
             </button>
+
+            {step < STEP_LABELS.length - 1 ? (
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={goNext}
+                disabled={!canAdvance}
+              >
+                Next
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn btn-primary booking-submit-btn"
+                onClick={confirmAndCheckout}
+                disabled={submitting}
+              >
+                {submitting ? "Booking..." : "Confirm & Pay"}
+              </button>
+            )}
           </div>
-        </form>
+        </div>
 
         <aside className="booking-side">
           <div className="panel booking-summary-card">
@@ -268,31 +280,61 @@ function BookAppointment() {
             <div className="booking-summary-grid">
               <div className="booking-summary-row">
                 <span className="booking-summary-label">Doctor</span>
-                <span className={selectedDoctor ? "booking-summary-value" : "booking-summary-value booking-summary-value--muted"}>
+                <span
+                  className={
+                    selectedDoctor
+                      ? "booking-summary-value"
+                      : "booking-summary-value booking-summary-value--muted"
+                  }
+                >
                   {selectedDoctor ? selectedDoctor.name : "Not selected"}
                 </span>
               </div>
               <div className="booking-summary-row">
                 <span className="booking-summary-label">Specialization</span>
-                <span className={selectedDoctor?.specialization ? "booking-summary-value" : "booking-summary-value booking-summary-value--muted"}>
+                <span
+                  className={
+                    selectedDoctor?.specialization
+                      ? "booking-summary-value"
+                      : "booking-summary-value booking-summary-value--muted"
+                  }
+                >
                   {selectedDoctor?.specialization || "Not selected"}
                 </span>
               </div>
               <div className="booking-summary-row">
                 <span className="booking-summary-label">Date</span>
-                <span className={form.appointmentDate ? "booking-summary-value" : "booking-summary-value booking-summary-value--muted"}>
+                <span
+                  className={
+                    form.appointmentDate
+                      ? "booking-summary-value"
+                      : "booking-summary-value booking-summary-value--muted"
+                  }
+                >
                   {formatAppointmentDate(form.appointmentDate)}
                 </span>
               </div>
               <div className="booking-summary-row">
                 <span className="booking-summary-label">Time Slot</span>
-                <span className={form.timeSlot ? "booking-summary-value" : "booking-summary-value booking-summary-value--muted"}>
+                <span
+                  className={
+                    form.timeSlot
+                      ? "booking-summary-value"
+                      : "booking-summary-value booking-summary-value--muted"
+                  }
+                >
                   {form.timeSlot || "Not selected"}
                 </span>
               </div>
               <div className="booking-summary-row">
                 <span className="booking-summary-label">Consultation Fee</span>
-                <span className={selectedDoctor ? "booking-summary-value" : "booking-summary-value booking-summary-value--muted"}>
+                <span
+                  className={
+                    selectedDoctor
+                      ? "booking-summary-value"
+                      : "booking-summary-value booking-summary-value--muted"
+                  }
+                >
                   {selectedDoctor ? formatCurrency(selectedDoctor.consultationFee, "LKR") : "Not available"}
                 </span>
               </div>
@@ -300,11 +342,12 @@ function BookAppointment() {
           </div>
 
           <div className="panel booking-help-card">
-            <h3>Before You Submit</h3>
+            <h3>What Happens Next</h3>
             <ul className="booking-help-list">
-              <li>Keep your reason brief and medically relevant.</li>
-              <li>Choose a slot you can definitely attend.</li>
-              <li>You can manage booking status from My Appointments.</li>
+              <li>Your slot is reserved once you confirm.</li>
+              <li>Payment runs immediately via secure checkout.</li>
+              <li>The doctor still needs to accept your request.</li>
+              <li>Manage or cancel from My Appointments.</li>
             </ul>
           </div>
         </aside>
