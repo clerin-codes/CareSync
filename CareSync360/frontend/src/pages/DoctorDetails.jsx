@@ -4,6 +4,7 @@ import EmptyState from "../components/EmptyState";
 import Loader from "../components/Loader";
 import { useAuth } from "../context/AuthContext";
 import { doctorService } from "../services/doctorService";
+import { ratingService } from "../services/ratingService";
 
 function DoctorDetails({ dashboardMode = false }) {
   const { id } = useParams();
@@ -11,6 +12,7 @@ function DoctorDetails({ dashboardMode = false }) {
   const [doctor, setDoctor] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [ratingSummary, setRatingSummary] = useState({ count: 0, average: 0, ratings: [] });
 
   useEffect(() => {
     const loadDoctor = async () => {
@@ -28,6 +30,20 @@ function DoctorDetails({ dashboardMode = false }) {
     };
 
     loadDoctor();
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    ratingService
+      .getRatingsByDoctor(id)
+      .then((data) =>
+        setRatingSummary({
+          count: data.count || 0,
+          average: data.average || 0,
+          ratings: Array.isArray(data.ratings) ? data.ratings : []
+        })
+      )
+      .catch(() => setRatingSummary({ count: 0, average: 0, ratings: [] }));
   }, [id]);
 
   const availabilityByDay = useMemo(() => {
@@ -104,6 +120,15 @@ function DoctorDetails({ dashboardMode = false }) {
             <span className="eyebrow">Doctor Profile</span>
             <h1>{doctor.name}</h1>
             <p className="doctor-specialization">{doctor.specialization || "General Medicine"}</p>
+            {ratingSummary.count > 0 ? (
+              <p className="doctor-rating-summary">
+                <span className="rating-star rating-star--active rating-star--static">★</span>
+                <strong>{ratingSummary.average.toFixed(1)}</strong>
+                <span className="doctor-rating-summary__count">
+                  ({ratingSummary.count} review{ratingSummary.count === 1 ? "" : "s"})
+                </span>
+              </p>
+            ) : null}
           </div>
           <span className={doctor.verified ? "badge badge-success" : "badge"}>
             {doctor.verified ? "Verified" : "Pending Verification"}
@@ -169,6 +194,28 @@ function DoctorDetails({ dashboardMode = false }) {
               </div>
             ) : (
               <p className="availability-day-empty">No availability listed yet.</p>
+            )}
+          </div>
+
+          <div className="details-card">
+            <h2>Patient Reviews</h2>
+            {ratingSummary.count === 0 ? (
+              <p className="availability-day-empty">No reviews yet.</p>
+            ) : (
+              <div className="doctor-review-list">
+                {ratingSummary.ratings.slice(0, 5).map((rating) => (
+                  <article key={rating._id} className="doctor-review-card">
+                    <header className="doctor-review-head">
+                      <span className="doctor-review-stars" aria-label={`${rating.stars} out of 5 stars`}>
+                        {"★".repeat(rating.stars)}
+                        <span className="doctor-review-stars__dim">{"★".repeat(5 - rating.stars)}</span>
+                      </span>
+                      <span className="doctor-review-author">{rating.patientName}</span>
+                    </header>
+                    {rating.review ? <p className="doctor-review-text">{rating.review}</p> : null}
+                  </article>
+                ))}
+              </div>
             )}
           </div>
 

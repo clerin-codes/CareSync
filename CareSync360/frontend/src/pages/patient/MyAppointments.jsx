@@ -7,8 +7,10 @@ import PageHeader from "../../components/PageHeader";
 import StatCard from "../../components/ui/StatCard";
 import StatusBadge from "../../components/ui/StatusBadge";
 import { useToast } from "../../components/ui/ToastProvider";
+import RatingModal from "../../components/appointments/RatingModal";
 import { appointmentService } from "../../services/appointmentService";
 import { paymentService } from "../../services/paymentService";
+import { ratingService } from "../../services/ratingService";
 
 const statusOptions = ["ALL", "PENDING", "ACCEPTED", "REJECTED", "CANCELLED", "COMPLETED"];
 
@@ -47,6 +49,10 @@ function MyAppointments() {
   const [editForm, setEditForm] = useState({ appointmentDate: "", timeSlot: "", reason: "" });
   const [confirmCancelId, setConfirmCancelId] = useState("");
   const [cancelling, setCancelling] = useState(false);
+  const [myRatings, setMyRatings] = useState([]);
+  const [ratingAppointment, setRatingAppointment] = useState(null);
+  const [submittingRating, setSubmittingRating] = useState(false);
+  const [ratingError, setRatingError] = useState("");
   const minBookingDate = useMemo(() => getTodayLocalDate(), []);
 
   const loadData = useCallback(async () => {
@@ -56,9 +62,15 @@ function MyAppointments() {
     try {
       const appointmentPromise = appointmentService.getMyAppointments(status === "ALL" ? {} : { status });
       const paymentPromise = paymentService.getMyPayments();
-      const [appointmentData, paymentData] = await Promise.all([appointmentPromise, paymentPromise]);
+      const ratingPromise = ratingService.getMyRatings().catch(() => []);
+      const [appointmentData, paymentData, ratingData] = await Promise.all([
+        appointmentPromise,
+        paymentPromise,
+        ratingPromise
+      ]);
       setAppointments(Array.isArray(appointmentData) ? appointmentData : []);
       setPayments(Array.isArray(paymentData) ? paymentData : []);
+      setMyRatings(Array.isArray(ratingData) ? ratingData : []);
     } catch (err) {
       const message = err.response?.data?.message || "Failed to load appointments.";
       setError(message);
@@ -151,6 +163,46 @@ function MyAppointments() {
     });
     return map;
   }, [payments]);
+
+  const ratedAppointmentIds = useMemo(
+    () => new Set(myRatings.map((rating) => rating.appointmentId)),
+    [myRatings]
+  );
+
+  const openRatingModal = (appointment) => {
+    setRatingError("");
+    setRatingAppointment(appointment);
+  };
+
+  const closeRatingModal = () => {
+    if (submittingRating) return;
+    setRatingAppointment(null);
+    setRatingError("");
+  };
+
+  const submitRating = async ({ stars, review }) => {
+    if (!ratingAppointment) return;
+    setSubmittingRating(true);
+    setRatingError("");
+
+    try {
+      const result = await ratingService.createRating({
+        appointmentId: ratingAppointment._id,
+        stars,
+        review
+      });
+      const message = result.message || "Thanks for your feedback.";
+      toast.success("Rating submitted", message);
+      setMyRatings((prev) => [result.rating, ...prev]);
+      setRatingAppointment(null);
+    } catch (err) {
+      const message = err.response?.data?.message || "Failed to submit rating.";
+      setRatingError(message);
+      toast.error("Rating failed", message);
+    } finally {
+      setSubmittingRating(false);
+    }
+  };
 
   const summary = useMemo(
     () => ({
@@ -407,6 +459,20 @@ function MyAppointments() {
                         View Consultation Room
                       </Link>
                     ) : null}
+
+                    {appointment.status === "COMPLETED" ? (
+                      ratedAppointmentIds.has(appointment._id) ? (
+                        <span className="appointment-rated-tag">Rated</span>
+                      ) : (
+                        <button
+                          type="button"
+                          className="btn btn-primary"
+                          onClick={() => openRatingModal(appointment)}
+                        >
+                          Rate Doctor
+                        </button>
+                      )
+                    ) : null}
                   </div>
                 )}
               </article>
@@ -414,6 +480,15 @@ function MyAppointments() {
           })}
         </div>
       ) : null}
+
+      <RatingModal
+        open={Boolean(ratingAppointment)}
+        appointment={ratingAppointment}
+        onClose={closeRatingModal}
+        onSubmit={submitRating}
+        submitting={submittingRating}
+        error={ratingError}
+      />
 
       <Dialog
         open={Boolean(confirmCancelId)}

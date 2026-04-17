@@ -1032,6 +1032,332 @@
   font-size: 0.9rem;
 }
 
+/* Booking wizard steps */
+.booking-step--completed {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.booking-step-content {
+  min-height: 320px;
+  padding: 0.25rem 0 0.5rem;
+}
+
+.booking-step-body {
+  display: grid;
+  gap: 1rem;
+}
+
+.booking-step-header h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.05rem;
+}
+
+.booking-step-header p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.88rem;
+}
+
+.booking-step-empty {
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  padding: 1rem;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.booking-search-input {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-size: 0.9rem;
+}
+
+.doctor-option-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.7rem;
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.doctor-option {
+  display: grid;
+  gap: 0.25rem;
+  text-align: left;
+  padding: 0.85rem 0.95rem;
+  border: 2px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.doctor-option:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.doctor-option--active {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+  box-shadow: var(--shadow-soft);
+}
+
+.doctor-option__name {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.doctor-option__spec {
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+}
+
+.doctor-option__fee {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.booking-date-label,
+.booking-reason-label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.booking-date-label input,
+.booking-reason-label textarea {
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--color-text);
+}
+
+.booking-reason-label textarea {
+  resize: vertical;
+  min-height: 140px;
+}
+
+.booking-field-hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  text-align: right;
+}
+
+.confirm-review {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.confirm-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-secondary);
+}
+
+.confirm-row--stacked {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.confirm-row > div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.confirm-row__label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-secondary);
+}
+
+.confirm-row__value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.confirm-row__value--text {
+  font-weight: 400;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.confirm-row__hint {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.confirm-row__edit {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  align-self: flex-start;
+}
+
+.confirm-row__edit:hover {
+  text-decoration: underline;
+}
+
+/* Ratings & reviews */
+.rating-modal-body {
+  display: grid;
+  gap: 1rem;
+}
+
+.rating-modal-label {
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.rating-modal-label textarea {
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--color-text);
+  resize: vertical;
+}
+
+.rating-stars {
+  display: inline-flex;
+  gap: 0.2rem;
+}
+
+.rating-star {
+  background: none;
+  border: none;
+  padding: 0.1rem 0.2rem;
+  font-size: 1.8rem;
+  line-height: 1;
+  color: var(--color-border);
+  cursor: pointer;
+  transition: color var(--transition-fast), transform var(--transition-fast);
+}
+
+.rating-star:hover {
+  transform: scale(1.05);
+}
+
+.rating-star--active {
+  color: #f5b301;
+}
+
+.rating-star--static {
+  cursor: default;
+  font-size: 1.1rem;
+  padding: 0;
+}
+
+.rating-star--static:hover {
+  transform: none;
+}
+
+.appointment-rated-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.8rem;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.doctor-rating-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.3rem;
+  color: var(--color-text);
+  font-size: 0.95rem;
+}
+
+.doctor-rating-summary__count {
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+}
+
+.doctor-review-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.doctor-review-card {
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-secondary);
+  padding: 0.75rem 0.9rem;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.doctor-review-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.doctor-review-stars {
+  color: #f5b301;
+  letter-spacing: 0.05em;
+  font-size: 0.95rem;
+}
+
+.doctor-review-stars__dim {
+  color: var(--color-border);
+}
+
+.doctor-review-author {
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.doctor-review-text {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.booking-footer--wizard {
+  justify-content: space-between;
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .dashboard-content {

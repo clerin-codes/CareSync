@@ -15,6 +15,7 @@ const stripTrailingSlash = (url) => url.replace(/\/+$/, "");
 const authTarget = `${stripTrailingSlash(process.env.AUTH_SERVICE_URL || "http://auth-service:4001")}/auth`;
 const doctorTarget = `${stripTrailingSlash(process.env.DOCTOR_SERVICE_URL || "http://doctor-service:4002")}/doctors`;
 const appointmentTarget = `${stripTrailingSlash(process.env.APPOINTMENT_SERVICE_URL || "http://appointment-service:4003")}/appointments`;
+const ratingTarget = `${stripTrailingSlash(process.env.APPOINTMENT_SERVICE_URL || "http://appointment-service:4003")}/ratings`;
 const patientTarget = `${stripTrailingSlash(process.env.PATIENT_SERVICE_URL || "http://patient-service:4004")}/patients`;
 const paymentTarget = `${stripTrailingSlash(process.env.PAYMENT_SERVICE_URL || "http://payment-service:4005")}/payments`;
 const notificationTarget = `${stripTrailingSlash(process.env.NOTIFICATION_SERVICE_URL || "http://notification-service:4006")}/notifications`;
@@ -27,6 +28,7 @@ app.get("/", (req, res) => {
       auth: "/auth",
       doctors: "/doctors",
       appointments: "/appointments",
+      ratings: "/ratings",
       patients: "/patients",
       payments: "/payments",
       notifications: "/notifications"
@@ -73,6 +75,21 @@ app.use(
     onError: (err, req, res) => {
       res.status(502).json({
         message: "Appointment service is unavailable",
+        error: err.message
+      });
+    }
+  })
+);
+
+app.use(
+  "/ratings",
+  createProxyMiddleware({
+    target: ratingTarget,
+    changeOrigin: true,
+    proxyTimeout: 5000,
+    onError: (err, req, res) => {
+      res.status(502).json({
+        message: "Rating service is unavailable",
         error: err.message
       });
     }

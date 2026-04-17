@@ -134,8 +134,8 @@ const verifyMyAppointment = async (appointmentId, authHeader) => {
   }
 
   const appointment = await response.json();
-  if (!["ACCEPTED", "COMPLETED"].includes(appointment.status)) {
-    return { valid: false, message: "Payment is allowed only for accepted/completed appointments" };
+  if (!["PENDING", "ACCEPTED", "COMPLETED"].includes(appointment.status)) {
+    return { valid: false, message: "Payment is not allowed for this appointment status" };
   }
 
   return { valid: true, appointment };
