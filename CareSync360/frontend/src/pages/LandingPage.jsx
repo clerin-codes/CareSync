@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, useInView } from "motion/react";
 import {
@@ -137,16 +137,16 @@ export default function LandingPage() {
   ];
 
   const sliderItems = [
-    { title: "Patient Care", num: "01", imageUrl: carImg1 },
-    { title: "Expert Doctors", num: "02", imageUrl: carImg2 },
+    { title: "Telemedicine", num: "01", imageUrl: carImg1 },
+    { title: "24-Hour Service", num: "02", imageUrl: carImg2 },
     { title: "Appointments", num: "03", imageUrl: carImg3 },
     { title: "AI Insights", num: "04", imageUrl: carImg4 },
-    { title: "Video Consult", num: "05", imageUrl: carImg5 },
+    { title: "Emergency Services", num: "05", imageUrl: carImg5 },
     { title: "Health Records", num: "06", imageUrl: carImg6 },
     { title: "Lab Reports", num: "07", imageUrl: carImg7 },
-    { title: "Prescriptions", num: "08", imageUrl: carImg8 },
-    { title: "Live Chat", num: "09", imageUrl: carImg9 },
-    { title: "Dashboard", num: "10", imageUrl: carImg10 },
+    { title: "Expert Doctors", num: "08", imageUrl: carImg8 },
+    { title: "Instant Tests", num: "09", imageUrl: carImg9 },
+    { title: "Love & Care", num: "10", imageUrl: carImg10 },
   ];
 
   useEffect(() => {
@@ -228,7 +228,7 @@ export default function LandingPage() {
     {
       icon: Shield,
       title: "Secure Health Records",
-      desc: "Your complete medical history in one place — prescriptions, diagnoses, lab results, and visit notes. All encrypted and accessible only to you and your care team.",
+      desc: "Your complete medical history in one place ÔÇö prescriptions, diagnoses, lab results, and visit notes. All encrypted and accessible only to you and your care team.",
     },
     {
       icon: MessageCircle,
@@ -243,7 +243,7 @@ export default function LandingPage() {
     {
       icon: Stethoscope,
       title: "Doctor Dashboard",
-      desc: "Comprehensive tools for healthcare professionals — patient management, analytics, prescription generation, and availability management.",
+      desc: "Comprehensive tools for healthcare professionals ÔÇö patient management, analytics, prescription generation, and availability management.",
     },
   ];
 
@@ -541,7 +541,7 @@ export default function LandingPage() {
               style={{ color: "#6C6863" }}
             >
               A smart healthcare platform connecting patients with specialist
-              doctors — seamless appointments, secure records, and AI-powered
+              doctors ÔÇö seamless appointments, secure records, and AI-powered
               insights, all in one place.
             </p>
 
@@ -653,9 +653,9 @@ export default function LandingPage() {
                 providers through intelligent technology. We believe that
                 quality healthcare should be accessible, transparent, and
                 seamless. Our platform empowers both doctors and patients with
-                tools that simplify every step of the healthcare journey — from
-                booking that first appointment to receiving your AI-explained
-                medical report.
+                tools that simplify every step of the healthcare journey ÔÇö
+                from booking that first appointment to receiving your
+                AI-explained medical report.
               </p>
               <div className="mt-8">
                 <Link to="/register-patient" className="lp-btn-primary">
