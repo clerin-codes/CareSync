@@ -1,6 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
+import { 
+  Search,
+  SearchX,
+  Building2,
+  UserRoundSearch,
+  Hospital,
+  Stethoscope,
+  ClipboardList,
+ } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import PatientNavbar from "../../components/PatientNavbar";
+import { getAllDoctors, getAllHospitals } from "../../services/patientService";
 
 
 const fadeUp = {
@@ -85,14 +95,14 @@ export default function Directory() {
       setErr("");
       try {
         const [hRes, dRes] = await Promise.all([
-          api.get("/patients/hospital"),
-          api.get("/patients/doctor"),
+          getAllHospitals(),
+          getAllDoctors(),
         ]);
 
-        const hList = normalizeList(hRes.data).sort((a, b) =>
+        const hList = normalizeList(hRes.hospitals || hRes).sort((a, b) =>
           (a?.name || "").localeCompare(b?.name || ""),
         );
-        const dList = normalizeList(dRes.data).sort((a, b) =>
+        const dList = normalizeList(dRes.doctors || dRes).sort((a, b) =>
           (a?.fullName || "").localeCompare(b?.fullName || ""),
         );
 
@@ -110,34 +120,14 @@ export default function Directory() {
     run();
   }, []);
 
-  const openHospital = async (h) => {
+  const openHospital = (h) => {
     setSelectedHospital(h);
-    setDetailLoading(true);
     setErr("");
-    try {
-      const id = h?._id || h?.id;
-      const res = await api.get(`/patients/hospital/${id}`);
-      setSelectedHospital(res.data);
-    } catch (e) {
-      setErr(e?.response?.data?.message || "Failed to load hospital details");
-    } finally {
-      setDetailLoading(false);
-    }
   };
 
-  const openDoctor = async (d) => {
+  const openDoctor = (d) => {
     setSelectedDoctor(d);
-    setDetailLoading(true);
     setErr("");
-    try {
-      const id = d?._id || d?.id;
-      const res = await api.get(`/patients/doctor/${id}`);
-      setSelectedDoctor(res.data);
-    } catch (e) {
-      setErr(e?.response?.data?.message || "Failed to load doctor details");
-    } finally {
-      setDetailLoading(false);
-    }
   };
 
   // ✅ Hospital schema fields: name, address, contact, lat, lng
@@ -275,10 +265,49 @@ export default function Directory() {
 
               <div className="mt-4 space-y-3 max-h-[520px] overflow-auto pr-1">
                 {list.length === 0 ? (
-                  <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm text-gray-600">
-                    No results.
+                  <div className="rounded-3xl border border-dashed border-teal-200 bg-gradient-to-br from-teal-50 to-white p-6 text-center shadow-sm">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-sm border border-teal-100">
+                      {q ? (
+                        <SearchX className="h-8 w-8 text-teal-500" />
+                      ) : tab === "hospitals" ? (
+                        <Hospital className="h-8 w-8 text-teal-500" />
+                      ) : (
+                        <Stethoscope className="h-8 w-8 text-teal-500" />
+                      )}
+                    </div>
+
+                    <h3 className="text-base font-semibold text-gray-900">
+                      {q
+                        ? `No matching ${tab} found`
+                        : tab === "hospitals"
+                          ? "No hospitals available"
+                          : "No doctors available"}
+                    </h3>
+
+                    <p className="mt-2 text-sm leading-6 text-gray-600 max-w-md mx-auto">
+                      {q
+                        ? `We could not find any ${tab} matching your search. Try a different keyword or clear the search field.`
+                        : tab === "hospitals"
+                          ? "Hospital records are not available right now. They will appear here once they are added to the system."
+                          : "Doctor records are not available right now. They will appear here once they are added to the system."}
+                    </p>
+
+                    <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+                      <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs text-gray-700 border border-gray-200">
+                        <Building2 className="h-4 w-4 text-teal-500" />
+                        Browse directory
+                      </span>
+                      <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs text-gray-700 border border-gray-200">
+                        <Search className="h-4 w-4 text-teal-500" />
+                        Search records
+                      </span>
+                      <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs text-gray-700 border border-gray-200">
+                        <ClipboardList className="h-4 w-4 text-teal-500" />
+                        View details
+                      </span>
+                    </div>
                   </div>
-                ) : tab === "hospitals" ? (
+) : tab === "hospitals" ? (
                   list.map((h) => {
                     const isActive =
                       String(selectedHospital?._id || "") ===
@@ -371,8 +400,45 @@ export default function Directory() {
               custom={1}
             >
               {!active ? (
-                <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm text-gray-600">
-                  Select an item to view details.
+                <div className="rounded-3xl border border-dashed border-teal-200 bg-gradient-to-br from-teal-50 to-white p-8 text-center shadow-sm">
+                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-sm border border-teal-100">
+                    {tab === "hospitals" ? (
+                      <UserRoundSearch className="h-8 w-8 text-teal-500" />
+                    ) : (
+                      <Stethoscope className="h-8 w-8 text-teal-500" />
+                    )}
+                  </div>
+
+                  <h3 className="text-base font-semibold text-gray-900">
+                    {tab === "hospitals"
+                      ? "Select a hospital"
+                      : "Select a doctor"}
+                  </h3>
+
+                  <p className="mt-2 text-sm leading-6 text-gray-600 max-w-md mx-auto">
+                    {tab === "hospitals"
+                      ? "Choose a hospital from the left panel to view its address, contact information, and location details."
+                      : "Choose a doctor from the left panel to view their specialization, qualifications, availability, and booking options."}
+                  </p>
+
+                  <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs text-gray-700 border border-gray-200">
+                      <Search className="h-4 w-4 text-teal-500" />
+                      Search list
+                    </span>
+                    <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs text-gray-700 border border-gray-200">
+                      <ClipboardList className="h-4 w-4 text-teal-500" />
+                      View details
+                    </span>
+                    <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs text-gray-700 border border-gray-200">
+                      {tab === "hospitals" ? (
+                        <Hospital className="h-4 w-4 text-teal-500" />
+                      ) : (
+                        <Stethoscope className="h-4 w-4 text-teal-500" />
+                      )}
+                      {tab === "hospitals" ? "Hospital info" : "Doctor profile"}
+                    </span>
+                  </div>
                 </div>
               ) : (
                 <>

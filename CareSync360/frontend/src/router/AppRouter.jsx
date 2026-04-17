@@ -3,7 +3,8 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ProtectedRoute from "../components/ProtectedRoute";
 import RoleGuard from "../components/RoleGuard";
-import DashboardSidebar from "../components/DashboardSidebar";
+import DashboardLayout from "../components/DashboardSidebar"; 
+import PatientNavbar from "../components/PatientNavbar";
 import Home from "../pages/Home";
 import LandingPage from "../pages/LandingPage";
 import Login from "../pages/Login";
@@ -19,9 +20,6 @@ import Document from "../pages/patient/Document";
 import BookAppointment from "../pages/patient/BookAppointment";
 import MyAppointments from "../pages/patient/MyAppointments";
 import PatientPayments from "../pages/patient/PatientPayments";
-// import PatientProfile from "../pages/patient/PatientProfile";
-// import PatientReports from "../pages/patient/PatientReports";
-// import PatientPrescriptions from "../pages/patient/PatientPrescriptions";
 import CreateProfile from "../pages/patient/CreateProfile";
 import DoctorDashboard from "../pages/doctor/DoctorDashboard";
 import DoctorProfile from "../pages/doctor/DoctorProfile";
@@ -45,11 +43,10 @@ function PublicLayout() {
   );
 }
 
-function DashboardLayout() {
+function PatientLayout() {
   return (
-    <div className="dashboard-shell">
-      <DashboardSidebar />
-      <main className="dashboard-main">
+    <div className="patient-shell">
+      <main className="patient-main">
         <Outlet />
       </main>
     </div>
@@ -78,7 +75,7 @@ export default function AppRouter() {
       </Route>
 
       <Route element={<ProtectedRoute />}>
-        <Route element={<DashboardLayout />}>
+       
           <Route element={<RoleGuard allowedRoles={["PATIENT"]} />}>
             <Route path="/patient/dashboard" element={<PatientDashboard />} />
             <Route
@@ -101,13 +98,10 @@ export default function AppRouter() {
             <Route path="/patient/directory" element={<Directory />} />
             <Route path="/patient/documents" element={<Document />} />
             <Route path="/patient/create-profile" element={<CreateProfile />} />
-            {/* <Route path="/patient/reports" element={<PatientReports />} /> */}
-            {/* <Route
-              path="/patient/prescriptions"
-              element={<PatientPrescriptions />}
-            /> */}
-          </Route>
+          
+        </Route>
 
+        <Route element={<DashboardLayout />}>
           <Route element={<RoleGuard allowedRoles={["DOCTOR"]} />}>
             <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
             <Route path="/doctor/profile" element={<DoctorProfile />} />

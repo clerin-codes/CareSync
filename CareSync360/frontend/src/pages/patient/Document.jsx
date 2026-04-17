@@ -24,6 +24,8 @@ export default function Documents() {
   const [category, setCategory] = useState("report");
   const [msg, setMsg] = useState("");
   const [msgType, setMsgType] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
   const fileRef = useRef(null);
 
   const msgClass =
@@ -73,13 +75,9 @@ export default function Documents() {
     try {
       setMsg("");
       setMsgType("");
+      setUploading(true);
 
-      const fd = new FormData();
-      fd.append("document", file);
-      fd.append("title", title || file.name);
-      fd.append("fileType", category);
-
-      await uploadMyDocument(fd);
+      await uploadMyDocument({ file, title: title || file.name, fileType: category });
 
       setMsgType("success");
       setMsg("✅ Document uploaded");
@@ -91,11 +89,14 @@ export default function Documents() {
     } catch (e) {
       setMsgType("error");
       setMsg(e.response?.data?.message || "Upload failed");
+    } finally {
+      setUploading(false);
     }
   };
 
   const remove = async (id) => {
     try {
+      setDeletingId(id);
       await deleteMyDocument(id);
       setMsgType("success");
       setMsg("✅ Document deleted");
@@ -103,6 +104,8 @@ export default function Documents() {
     } catch (e) {
       setMsgType("error");
       setMsg(e.response?.data?.message || "Delete failed");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -197,9 +200,10 @@ export default function Documents() {
           <div className="mt-5">
             <button
               onClick={upload}
-              className="px-6 py-2.5 rounded-xl bg-[#178d95] text-white text-sm font-semibold hover:bg-[#126b73] active:scale-[0.98] transition shadow-sm hover:shadow-md hover:-translate-y-1 duration-300"
+              disabled={uploading}
+              className="px-6 py-2.5 rounded-xl bg-[#178d95] text-white text-sm font-semibold hover:bg-[#126b73] active:scale-[0.98] transition shadow-sm hover:shadow-md hover:-translate-y-1 duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#178d95] disabled:hover:translate-y-0"
             >
-              Upload Document
+              {uploading ? "Uploading..." : "Upload Document"}
             </button>
           </div>
         </div>
@@ -284,9 +288,10 @@ export default function Documents() {
                     </button>
                     <button
                       onClick={() => remove(doc._id)}
-                      className="px-3 py-2 rounded-xl bg-gray-100 text-gray-900 text-sm hover:bg-gray-200 transition"
+                      disabled={deletingId === doc._id}
+                      className="px-3 py-2 rounded-xl bg-gray-100 text-gray-900 text-sm hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Delete
+                      {deletingId === doc._id ? "Deleting..." : "Delete"}
                     </button>
                   </div>
                 </div>

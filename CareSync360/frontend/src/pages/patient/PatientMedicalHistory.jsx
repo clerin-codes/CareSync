@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import jsPDF from "jspdf";
+import { 
+  Inbox,
+  FileHeart,
+  Stethoscope,
+  SearchX,
+  ClipboardList, 
+} from "lucide-react";
 import {getAllMedicalHistory } from "../../services/patientService";
 import { motion, AnimatePresence } from "framer-motion";
 import PatientNavbar from "../../components/PatientNavbar";
@@ -58,6 +65,7 @@ export default function PatientMedicalHistory() {
   const [me, setMe] = useState(null);
   const [records, setRecords] = useState([]);
   const [prescriptions, setPrescriptions] = useState([]);
+  const [medicalHistory, setMedicalHistory] = useState({});
 
   const [selected, setSelected] = useState(null);
 
@@ -193,21 +201,14 @@ export default function PatientMedicalHistory() {
       setLoading(true);
       setErr("");
       try {
-        const [meRes, recRes, preRes] = await Promise.all([
-          api.get("/patients/me"),
-          api.get("/patients/me/medical-record"),
-          api.get("/patients/me/prescription"),
-        ]);
+        const res = await getAllMedicalHistory();
 
-        const recList = normalizeList(recRes.data).sort(
-          (a, b) => new Date(b.visitDate) - new Date(a.visitDate),
-        );
-        const preList = normalizeList(preRes.data);
-
-        setMe(meRes.data);
-        setRecords(recList);
-        setPrescriptions(preList);
-        setSelected(recList[0] || null);
+        const medicalHistory = res.medicalHistory || {};
+        setMe({}); // dummy
+        setRecords([]); // no records yet
+        setPrescriptions([]); // no prescriptions yet
+        setMedicalHistory(medicalHistory);
+        setSelected(null);
       } catch (e) {
         setErr(e?.response?.data?.message || "Failed to load medical history");
       } finally {
@@ -266,6 +267,14 @@ export default function PatientMedicalHistory() {
     if (!selected?._id) return null;
     return presByRecordId.get(String(selected._id)) || null;
   }, [selected, presByRecordId]);
+
+  const hasProfileMedicalHistory = Boolean(
+    (medicalHistory.allergies?.length || 0) +
+      (medicalHistory.chronicDiseases?.length || 0) +
+      (medicalHistory.medications?.length || 0) +
+      (medicalHistory.surgeries?.length || 0) ||
+      medicalHistory.notes?.trim()
+  );
 
   if (loading) {
     return (
@@ -359,8 +368,41 @@ export default function PatientMedicalHistory() {
 
             <div className="mt-4 space-y-3 max-h-[520px] overflow-auto pr-1">
               {filtered.length === 0 ? (
-                <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm text-gray-600">
-                  No records found.
+                <div className="rounded-3xl border border-dashed border-teal-200 bg-gradient-to-br from-teal-50 to-white p-6 text-center shadow-sm">
+                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-sm border border-teal-100">
+                    {q || typeFilter !== "all" ? (
+                      <SearchX className="h-8 w-8 text-teal-500" />
+                    ) : (
+                      <ClipboardList className="h-8 w-8 text-teal-500" />
+                    )}
+                  </div>
+
+                  <h3 className="text-base font-semibold text-gray-900">
+                    {q || typeFilter !== "all"
+                      ? "No matching visit records"
+                      : "No visit records yet"}
+                  </h3>
+
+                  <p className="mt-2 text-sm leading-6 text-gray-600 max-w-md mx-auto">
+                    {hasProfileMedicalHistory
+                      ? "We could not find any visit-based medical history. Your profile medical history is still available on the right panel."
+                      : "There are no medical history records available yet. Once visits and prescriptions are added, they will appear here."}
+                  </p>
+
+                  <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs text-gray-700 border border-gray-200">
+                      <Inbox className="h-4 w-4 text-teal-500" />
+                      Visit records
+                    </span>
+                    <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs text-gray-700 border border-gray-200">
+                      <Stethoscope className="h-4 w-4 text-teal-500" />
+                      Diagnosis details
+                    </span>
+                    <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs text-gray-700 border border-gray-200">
+                      <FileHeart className="h-4 w-4 text-teal-500" />
+                      Prescriptions
+                    </span>
+                  </div>
                 </div>
               ) : (
                 filtered.map((r) => {
@@ -432,9 +474,68 @@ export default function PatientMedicalHistory() {
           >
             <div className="max-h-[520px] overflow-auto pr-1">
               {!selected ? (
-                <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm text-gray-600">
-                  Select a record to view details.
-                </div>
+                hasProfileMedicalHistory ? (
+                  <div className="space-y-4 p-4 rounded-3xl bg-gray-50 border border-gray-100 text-sm text-gray-700">
+                    <div className="text-base font-semibold text-gray-900">
+                      Profile Medical History
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      This section shows profile-level medical history when visit records are not available.
+                    </div>
+                    <div className="grid gap-3">
+                      <SummaryRow
+                        label="Allergies"
+                        value={medicalHistory.allergies?.join(", ") || "None recorded"}
+                      />
+                      <SummaryRow
+                        label="Chronic Diseases"
+                        value={medicalHistory.chronicDiseases?.join(", ") || "None recorded"}
+                      />
+                      <SummaryRow
+                        label="Medications"
+                        value={medicalHistory.medications?.join(", ") || "None recorded"}
+                      />
+                      <SummaryRow
+                        label="Surgeries"
+                        value={medicalHistory.surgeries?.join(", ") || "None recorded"}
+                      />
+                      <SummaryRow
+                        label="Notes"
+                        value={medicalHistory.notes || "None recorded"}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-3xl border border-dashed border-teal-200 bg-gradient-to-br from-teal-50 to-white p-8 text-center shadow-sm">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-sm border border-teal-100">
+                      <FileHeart className="h-8 w-8 text-teal-500" />
+                    </div>
+
+                    <h3 className="text-base font-semibold text-gray-900">
+                      No medical record selected
+                    </h3>
+
+                    <p className="mt-2 text-sm leading-6 text-gray-600 max-w-md mx-auto">
+                      Choose a visit record from the left panel to view full medical details,
+                      diagnosis, vitals, attachments, and prescriptions here.
+                    </p>
+
+                    <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+                      <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs text-gray-700 border border-gray-200">
+                        <ClipboardList className="h-4 w-4 text-teal-500" />
+                        Record summary
+                      </span>
+                      <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs text-gray-700 border border-gray-200">
+                        <Stethoscope className="h-4 w-4 text-teal-500" />
+                        Diagnosis & vitals
+                      </span>
+                      <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs text-gray-700 border border-gray-200">
+                        <FileHeart className="h-4 w-4 text-teal-500" />
+                        Prescription details
+                      </span>
+                    </div>
+                  </div>
+                )
               ) : (
                 <>
                   <div className="flex items-start justify-between gap-3">
@@ -725,6 +826,15 @@ function Vital({ label, value, unit }) {
         {empty ? "—" : value}
         {empty ? "" : unit ? ` ${unit}` : ""}
       </div>
+    </div>
+  );
+}
+
+function SummaryRow({ label, value }) {
+  return (
+    <div className="p-4 rounded-2xl bg-white border border-gray-100">
+      <div className="text-xs text-gray-500">{label}</div>
+      <div className="text-sm text-gray-900 mt-1">{value}</div>
     </div>
   );
 }

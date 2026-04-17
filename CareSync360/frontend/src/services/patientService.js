@@ -19,11 +19,7 @@ export const uploadMyAvatar = async (file) => {
   const formData = new FormData();
   formData.append("avatar", file);
 
-  const { data } = await api.post("/patients/me/avatar", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  const { data } = await api.post("/patients/me/avatar", formData);
 
   return data;
 };
@@ -44,11 +40,7 @@ export const uploadMyDocument = async ({ file, title, fileType }) => {
   formData.append("title", title);
   if (fileType) formData.append("fileType", fileType);
 
-  const { data } = await api.post("/patients/me/documents", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  const { data } = await api.post("/patients/me/documents", formData);
 
   return data;
 };
@@ -85,7 +77,7 @@ export const getAllMedicalHistory = async () => {
 };
 
 export const getAllDoctors = async () => {
-  const { data } = await api.get("/doctors/public");
+  const { data } = await api.get("/doctors");
   return data;
 };
 

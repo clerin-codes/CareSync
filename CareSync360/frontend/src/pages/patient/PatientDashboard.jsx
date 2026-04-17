@@ -281,7 +281,7 @@ export default function PatientDashboard() {
                   />
                 </div>
                 <a
-                  href="/patient/messages"
+                  href="/patient/ai-chat"
                   className="px-5 py-3 rounded-2xl bg-[#178d95] font-medium text-white shadow-sm hover:opacity-95 transition active:scale-[0.98] hover:shadow-md hover:-translate-y-1 duration-300"
                 >
                   AI Chat ↗
@@ -372,7 +372,7 @@ export default function PatientDashboard() {
 
                 <div className="mt-6 flex gap-3">
                   <a
-                    href="/patient/messages"
+                    href="/patient/ai-chat"
                     className="px-4 py-2 rounded-2xl bg-white/10 border border-white/15 text-sm hover:bg-white/15 transition"
                   >
                     Open AI Chat

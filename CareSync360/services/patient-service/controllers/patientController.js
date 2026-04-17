@@ -309,6 +309,8 @@ const updatePatientStatus = async (req, res) => {
 
 const uploadMyDocument = async (req, res) => {
   try {
+    console.log("Upload document request:", { file: !!req.file, body: req.body });
+
     const patient = await Patient.findOne({
       userId: req.user.id,
       isDeleted: false,

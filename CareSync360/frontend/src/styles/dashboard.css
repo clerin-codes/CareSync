@@ -1298,6 +1298,19 @@
   font-size: 0.86rem;
 }
 
+/* Patient Layout Styles */
+.patient-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.patient-main {
+  flex: 1;
+  padding: 2rem;
+  background: var(--color-background);
+}
+
 .doctor-slot-preview-list strong {
   color: var(--color-text);
   font-size: 0.84rem;

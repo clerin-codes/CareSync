@@ -29,7 +29,8 @@ app.get("/", (req, res) => {
       appointments: "/appointments",
       patients: "/patients",
       payments: "/payments",
-      notifications: "/notifications"
+      notifications: "/notifications",
+      hospitals: "/hospitals"
     }
   });
 });
@@ -118,6 +119,21 @@ app.use(
     onError: (err, req, res) => {
       res.status(502).json({
         message: "Notification service is unavailable",
+        error: err.message
+      });
+    }
+  })
+);
+
+app.use(
+  "/hospitals",
+  createProxyMiddleware({
+    target: doctorTarget,
+    changeOrigin: true,
+    proxyTimeout: 5000,
+    onError: (err, req, res) => {
+      res.status(502).json({
+        message: "Doctor service is unavailable",
         error: err.message
       });
     }

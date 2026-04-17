@@ -292,6 +292,7 @@ export default function Profile() {
     return {
       name: form.fullName || identity.name || "Patient",
       email: form.email || identity.email || "—",
+      phone: form.phone || "—",
       dob: form.dob || "—",
       gender: form.gender || "—",
       nic: form.nic || "—",
@@ -304,6 +305,8 @@ export default function Profile() {
       weight: form.weightKg ? `${form.weightKg} kg` : "—",
       allergies: form.allergies.trim() || "—",
       conditions: form.chronicConditions.trim() || "—",
+      medications: form.medications.trim() || "—",
+      surgeries: form.surgeries.trim() || "—",
     };
   }, [form, identity]);
 
