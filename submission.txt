@@ -1,9 +1,6 @@
 GitHub Repository Link:
 https://github.com/clerin-codes/CareSync.git
 
-YouTube Demo / Presentation Link:
-https://www.demo.youtube.com
+YouTube Demo Link:
+https://youtu.be/ZZuL9ZTS33Y?si=JRyLETfiZEor0e_s
 
-Notes:
-- Ensure the YouTube video duration is <= 12 minutes.
-- Each member should present their contribution (max 3 minutes per member).
