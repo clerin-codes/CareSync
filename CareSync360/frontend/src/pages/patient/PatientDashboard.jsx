@@ -1,426 +1,398 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import PageHeader from "../../components/PageHeader";
-import { useAuth } from "../../context/AuthContext";
-import { appointmentService } from "../../services/appointmentService";
-import { patientService } from "../../services/patientService";
-import { paymentService } from "../../services/paymentService";
-import { formatCurrency, formatDateTime } from "../../utils/formatters";
+import { useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { getMyDashboard } from "../../services/patientService";
+import PatientNavbar from "../../components/PatientNavbar";
 
-function PatientDashboard() {
-  const { user } = useAuth();
-  const [stats, setStats] = useState({
-    upcoming: 0,
-    reports: 0,
-    prescriptions: 0,
-    completed: 0,
-    paidPayments: 0,
-    pendingPayments: 0,
-    paidAmount: 0
-  });
-  const [recentPayments, setRecentPayments] = useState([]);
+const fadeUp = {
+  hidden: { opacity: 0, y: 14 },
+  visible: (i = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.55, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] },
+  }),
+};
+
+const softPop = {
+  hidden: { opacity: 0, scale: 0.96 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.35, ease: "easeOut" } },
+  exit: { opacity: 0, scale: 0.98, transition: { duration: 0.2 } },
+};
+
+export default function PatientDashboard() {
   const [loading, setLoading] = useState(true);
+  const [me, setMe] = useState(null);
+  const [msg, setMsg] = useState("");
 
   useEffect(() => {
-    let ignore = false;
+    const run = async () => {
+        try {
+        const response = await getMyDashboard();
+        setMe(response.dashboard);
+        } catch (e) {
+        const message = e.response?.data?.message || "Failed to load dashboard";
+        setMsg(message);
 
-    const loadStats = async () => {
-      setLoading(true);
-
-      try {
-        const [appointmentsResult, reportsResult, prescriptionsResult, paymentsResult] =
-          await Promise.allSettled([
-            appointmentService.getMyAppointments(),
-            patientService.getMyReports(),
-            patientService.getMyPrescriptions(),
-            paymentService.getMyPayments()
-          ]);
-
-        if (ignore) {
-          return;
+        if (message === "Patient profile not found") {
+            window.location.href = "/patient/create-profile";
         }
-
-        const appointments =
-          appointmentsResult.status === "fulfilled" && Array.isArray(appointmentsResult.value)
-            ? appointmentsResult.value
-            : [];
-        const reports =
-          reportsResult.status === "fulfilled" && Array.isArray(reportsResult.value)
-            ? reportsResult.value
-            : [];
-        const prescriptions =
-          prescriptionsResult.status === "fulfilled" && Array.isArray(prescriptionsResult.value)
-            ? prescriptionsResult.value
-            : [];
-        const payments =
-          paymentsResult.status === "fulfilled" && Array.isArray(paymentsResult.value)
-            ? paymentsResult.value
-            : [];
-
-        const upcomingCount = appointments.filter((item) =>
-          ["PENDING", "ACCEPTED"].includes(item.status)
-        ).length;
-        const completedCount = appointments.filter((item) => item.status === "COMPLETED").length;
-        const paidPayments = payments.filter((item) => item.status === "PAID");
-
-        setStats({
-          upcoming: upcomingCount,
-          completed: completedCount,
-          reports: reports.length,
-          prescriptions: prescriptions.length,
-          paidPayments: paidPayments.length,
-          pendingPayments: payments.filter((item) => item.status === "PENDING").length,
-          paidAmount: paidPayments.reduce((sum, item) => sum + Number(item.amount || 0), 0)
-        });
-        setRecentPayments(payments.slice(0, 4));
-      } finally {
-        if (!ignore) {
-          setLoading(false);
+        } finally {
+        setLoading(false);
         }
-      }
     };
 
-    loadStats();
+    run();
+    }, []);
 
-    return () => {
-      ignore = true;
-    };
-  }, []);
+  const score = Number(me?.profileStrength ?? 0);
 
-  const quickActions = [
-    {
-      title: "Find Doctors",
-      description: "Browse doctors, review available slots, and pick the right specialist",
-      icon: (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-          <circle cx="12" cy="7" r="4" />
-          <path d="M17 11l2 2 4-4" />
-        </svg>
-      ),
-      to: "/patient/doctors",
-      color: "accent"
-    },
-    {
-      title: "Book Appointment",
-      description: "Schedule a consultation with a specialist",
-      icon: (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-          <circle cx="12" cy="7" r="4" />
-        </svg>
-      ),
-      to: "/patient/book-appointment",
-      color: "primary"
-    },
-    {
-      title: "View Appointments",
-      description: "Manage appointments and complete any pending payments",
-      icon: (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-          <line x1="16" y1="2" x2="16" y2="6" />
-          <line x1="8" y1="2" x2="8" y2="6" />
-          <line x1="3" y1="10" x2="21" y2="10" />
-        </svg>
-      ),
-      to: "/patient/appointments",
-      color: "secondary"
-    },
-    {
-      title: "Medical Reports",
-      description: "Upload and manage your medical documents",
-      icon: (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-          <polyline points="14,2 14,8 20,8" />
-          <line x1="16" y1="13" x2="8" y2="13" />
-          <line x1="16" y1="17" x2="8" y2="17" />
-          <polyline points="10,9 9,9 8,9" />
-        </svg>
-      ),
-      to: "/patient/reports",
-      color: "accent"
-    },
-    {
-      title: "Prescriptions",
-      description: "View your prescriptions and treatment plans",
-      icon: (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5Z" />
-          <path d="M12 5L8 21l4-7 4 7-4-16Z" />
-        </svg>
-      ),
-      to: "/patient/prescriptions",
-      color: "success"
-    },
-    {
-      title: "Payments",
-      description: "Review accepted consultations and complete sandbox checkout",
-      icon: (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="2" y="5" width="20" height="14" rx="2" />
-          <path d="M2 10h20" />
-          <path d="M6 15h5" />
-        </svg>
-      ),
-      to: "/patient/payments",
-      color: "primary"
-    }
-  ];
+  const missing = useMemo(() => {
+    if (!me) return [];
 
-  const statCards = [
-    {
-      title: "Upcoming Appointments",
-      value: stats.upcoming,
-      description: "Pending or accepted appointments",
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="12" cy="12" r="10" />
-          <polyline points="12,6 12,12 16,14" />
-        </svg>
-      ),
-      color: "primary",
-      trend: stats.upcoming > 0 ? "up" : "neutral"
-    },
-    {
-      title: "Completed Visits",
-      value: stats.completed,
-      description: "Successfully completed consultations",
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-          <polyline points="22,4 12,14.01 9,11.01" />
-        </svg>
-      ),
-      color: "success",
-      trend: stats.completed > 0 ? "up" : "neutral"
-    },
-    {
-      title: "Medical Reports",
-      value: stats.reports,
-      description: "Uploaded medical documents",
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-          <polyline points="14,2 14,8 20,8" />
-        </svg>
-      ),
-      color: "accent",
-      trend: "neutral"
-    },
-    {
-      title: "Prescriptions",
-      value: stats.prescriptions,
-      description: "Active prescriptions",
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5Z" />
-        </svg>
-      ),
-      color: "secondary",
-      trend: "neutral"
-    },
-    {
-      title: "Payments Completed",
-      value: stats.paidPayments,
-      description: "Payments successfully recorded",
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="2" y="5" width="20" height="14" rx="2" />
-          <path d="M2 10h20" />
-          <path d="M6 15h2" />
-          <path d="M10 15h5" />
-        </svg>
-      ),
-      color: "success",
-      trend: stats.paidPayments > 0 ? "up" : "neutral"
-    },
-    {
-      title: "Total Paid",
-      value: formatCurrency(stats.paidAmount, "LKR"),
-      description: `${stats.pendingPayments} payment${stats.pendingPayments === 1 ? "" : "s"} still pending`,
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M12 1v22" />
-          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-        </svg>
-      ),
-      color: "primary",
-      trend: stats.paidAmount > 0 ? "up" : "neutral"
-    }
-  ];
+    const list = [];
+
+    if (!me.phone) list.push("Add phone number");
+    if (!me.bloodGroup) list.push("Add blood group");
+    if (!me.hasEmergencyContact) list.push("Add emergency contact");
+    if (!me.avatarUrl) list.push("Add profile photo");
+
+    return list;
+  }, [me]);
+
+  const ScoreNumber = ({ value }) => (
+    <motion.span
+      key={value}
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      {value}
+    </motion.span>
+  );
 
   if (loading) {
     return (
-      <section className="dashboard-page">
-        <div className="loading-spinner"></div>
-      </section>
+      <div className="min-h-screen bg-gradient-to-b from-[#f6fbff] to-white p-6">
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            className="h-16 rounded-3xl bg-white/70 shadow-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          />
+          <div className="mt-6 grid lg:grid-cols-12 gap-5">
+            <motion.div
+              className="lg:col-span-7 h-[520px] rounded-3xl bg-white shadow-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.1 }}
+            />
+            <motion.div
+              className="lg:col-span-5 h-[520px] rounded-3xl bg-white shadow-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.18 }}
+            />
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <section className="dashboard-page">
-      <PageHeader
-        title={`Welcome back, ${user?.name?.split(" ")[0] || "Patient"}!`}
-        subtitle="Here is your healthcare account overview"
-      />
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-6">
+      <PatientNavbar />
 
-      <div className="dashboard-stats">
-        <div className="stats-grid">
-          {statCards.map((stat, index) => (
-            <div key={index} className={`stat-card stat-card--${stat.color}`}>
-              <div className="stat-icon">{stat.icon}</div>
-              <div className="stat-content">
-                <h3>{stat.title}</h3>
-                <div className="stat-value-wrapper">
-                  <span className="stat-value">{stat.value}</span>
-                  {stat.trend === "up" && (
-                    <svg className="trend-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="23,6 13.5,15.5 8.5,10.5 1,18" />
-                      <polyline points="17,6 23,6 23,12" />
-                    </svg>
-                  )}
-                </div>
-                <p className="stat-description">{stat.description}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <div className="max-w-7xl mx-auto px-5 py-6">
+        <AnimatePresence>
+          {msg && (
+            <motion.div
+              className="mb-4 p-3 rounded-xl bg-red-50 text-red-700 text-sm border border-red-100"
+              variants={softPop}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
+              {msg}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-      <div className="dashboard-content">
-        <div className="quick-actions-section">
-          <h2>Quick Actions</h2>
-          <div className="quick-actions-grid">
-            {quickActions.map((action, index) => (
-              <Link key={index} to={action.to} className={`action-card action-card--${action.color}`}>
-                <div className="action-icon">{action.icon}</div>
-                <div className="action-content">
-                  <h3>{action.title}</h3>
-                  <p>{action.description}</p>
-                </div>
-                <div className="action-arrow">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="9,18 15,12 9,6" />
-                    <polyline points="15,12 3,12 3,18" />
-                  </svg>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
+        <div className="grid lg:grid-cols-12 gap-5">
+          <div className="lg:col-span-7">
+            <motion.div
+              className="bg-white rounded-3xl shadow-sm p-6 overflow-hidden relative"
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+              custom={0}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <motion.h1
+                    className="text-4xl md:text-5xl font-semibold leading-tight text-gray-900"
+                    variants={fadeUp}
+                    initial="hidden"
+                    animate="visible"
+                    custom={1}
+                  >
+                    Overview
+                  </motion.h1>
+                  <motion.p
+                    className="text-2xl md:text-3xl font-light text-gray-700 mt-1"
+                    variants={fadeUp}
+                    initial="hidden"
+                    animate="visible"
+                    custom={2}
+                  >
+                    Patient Management
+                  </motion.p>
 
-        <div className="dashboard-widgets">
-          <div className="widget upcoming-appointments">
-            <h3>Next Steps</h3>
-            <div className="widget-content">
-              <div className="activity-item">
-                <div className="activity-icon">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <polyline points="12,6 12,12 16,14" />
-                  </svg>
+                  <motion.div
+                    className="mt-4 text-sm text-[#178d95]"
+                    variants={fadeUp}
+                    initial="hidden"
+                    animate="visible"
+                    custom={3}
+                  >
+                    <span className="text-gray-500">User:</span>{" "}
+                    <span className="font-medium">{me?.fullName || "Patient"}</span>{" "}
+                    <span className="mx-2">•</span>
+                    <span className="text-gray-500">Role:</span>{" "}
+                    <span className="font-medium">{me?.role || "patient"}</span>{" "}
+                    <span className="mx-2">•</span>
+                    <span className="text-gray-500">Email verified:</span>{" "}
+                    <span className={"font-medium " + (me?.isVerified ? "text-red-500" : "text-amber-700")}>
+                      {me?.isVerified ? "Yes" : "No"}
+                    </span>
+                  </motion.div>
                 </div>
-                <div className="activity-details">
-                  <p className="activity-title">Review pending and accepted appointments</p>
-                  <p className="activity-time">Track status from My Appointments</p>
-                </div>
-              </div>
-              <div className="activity-item">
-                <div className="activity-icon">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="2" y="5" width="20" height="14" rx="2" />
-                    <path d="M2 10h20" />
-                  </svg>
-                </div>
-                <div className="activity-details">
-                  <p className="activity-title">Clear pending appointment payments</p>
-                  <p className="activity-time">
-                    {stats.pendingPayments > 0
-                      ? `${stats.pendingPayments} payment${stats.pendingPayments === 1 ? "" : "s"} still waiting`
-                      : "No pending payments right now"}
-                  </p>
-                </div>
-              </div>
-              <div className="activity-item">
-                <div className="activity-icon">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14,2 14,8 20,8" />
-                  </svg>
-                </div>
-                <div className="activity-details">
-                  <p className="activity-title">Open your latest prescriptions and reports</p>
-                  <p className="activity-time">Keep records ready before consultations</p>
-                </div>
-              </div>
-            </div>
-            <Link to="/patient/appointments" className="widget-link">
-              Open Appointments →
-            </Link>
-          </div>
 
-          <div className="widget patient-payments-widget">
-            <h3>Recent Payments</h3>
-            <p className="patient-payment-summary">
-              {stats.paidPayments} paid / {stats.pendingPayments} pending / {formatCurrency(stats.paidAmount, "LKR")} total recorded
-            </p>
-            <div className="widget-content">
-              {recentPayments.length === 0 ? (
-                <p className="patient-payment-empty">No payment records available yet.</p>
-              ) : (
-                <div className="patient-payment-list">
-                  {recentPayments.map((payment) => (
-                    <div key={payment._id} className="patient-payment-item">
-                      <div className="patient-payment-item-head">
-                        <div>
-                          <p className="patient-payment-title">
-                            Appointment #{payment.appointmentId?.slice(-6)?.toUpperCase() || payment.appointmentId}
-                          </p>
-                          <p className="patient-payment-meta">{formatDateTime(payment.paidAt || payment.createdAt)}</p>
-                        </div>
-                        <span className={`payment-status payment-status--${payment.status.toLowerCase()}`}>
-                          {payment.status}
-                        </span>
-                      </div>
-                      <div className="patient-payment-item-foot">
-                        <strong>{formatCurrency(payment.amount, payment.currency)}</strong>
-                        <span>{(payment.method || "MOCK_CARD").replace(/_/g, " ")}</span>
-                      </div>
-                      {payment.failureReason && (
-                        <p className="patient-payment-failure">{payment.failureReason}</p>
-                      )}
+                <motion.div
+                  className="w-28 rounded-2xl bg-teal-50 border border-teal-100 p-4"
+                  variants={fadeUp}
+                  initial="hidden"
+                  animate="visible"
+                  custom={2}
+                >
+                  <div className="text-xs text-cyan-700">Profile completion</div>
+                  <div className="mt-1 text-3xl font-bold text-[#178d95] flex items-baseline">
+                    <ScoreNumber value={score} />%
+                  </div>
+
+                  <div className="mt-3 h-2 w-full bg-teal-100 rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-2 bg-[#178d95] rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${Math.max(0, Math.min(100, score))}%` }}
+                      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                    />
+                  </div>
+                </motion.div>
+              </div>
+
+              <div className="mt-6 relative">
+                <motion.div
+                  className="rounded-3xl overflow-hidden bg-gray-50"
+                  initial={{ opacity: 0, scale: 0.985 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <motion.img
+                    src="/img1.jpg"
+                    alt="Patient dashboard"
+                    className="w-full h-[360px] object-cover"
+                    initial={{ scale: 1.05 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                  />
+                </motion.div>
+
+                <motion.a
+                  href="/patient/documents"
+                  className="absolute left-6 bottom-6 bg-transparent backdrop-blur rounded-2xl shadow-sm p-4 w-[230px] group"
+                  whileHover={{ y: -2 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="text-xs text-white">Quick action</div>
+                  <div className="mt-1 font-semibold text-gray-300 flex items-center justify-between">
+                    Upload Documents
+                    <span className="text-gray-600 group-hover:text-white transition">↗</span>
+                  </div>
+                  <div className="text-sm text-gray-400">Medical reports / prescriptions</div>
+                </motion.a>
+
+                <motion.a
+                  href="/patient/messages"
+                  className="absolute right-6 bottom-6 bg-transparent backdrop-blur rounded-2xl shadow-sm p-4 w-[190px] group"
+                  whileHover={{ y: -2 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="text-xs text-white">Need help?</div>
+                  <div className="mt-1 font-semibold text-gray-300 flex items-center justify-between">
+                    Ask AI Chat
+                    <span className="text-gray-600 group-hover:text-white transition">↗</span>
+                  </div>
+                  <div className="text-sm text-gray-400">General guidance</div>
+                </motion.a>
+              </div>
+
+              <AnimatePresence>
+                {missing.length > 0 && (
+                  <motion.div
+                    className="mt-5 rounded-2xl bg-teal-50 p-4"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 6 }}
+                    transition={{ duration: 0.35 }}
+                  >
+                    <div className="text-sm font-semibold text-gray-900">Complete your profile</div>
+                    <ul className="mt-2 text-sm text-gray-600 list-disc pl-5 space-y-1">
+                      {missing.slice(0, 4).map((m, i) => (
+                        <li key={i}>{m}</li>
+                      ))}
+                    </ul>
+                    <div className="mt-3">
+                      <a
+                        href="/patient/profile"
+                        className="inline-flex items-center gap-2 text-sm font-medium text-[#178d95] hover:underline"
+                      >
+                        Update profile →
+                      </a>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <Link to="/patient/payments" className="widget-link">
-              View Payment Status →
-            </Link>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
           </div>
 
-          <div className="widget health-tips">
-            <h3>Account Reminders</h3>
-            <div className="widget-content">
-              <div className="tip-item">
-                <h4>Keep Profile Updated</h4>
-                <p>Update phone number and personal details for smoother communication.</p>
+          <div className="lg:col-span-5 space-y-5">
+            <motion.div
+              className="bg-white rounded-3xl shadow-sm p-5"
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+              custom={1}
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex-1 flex items-center gap-2 px-4 py-3 rounded-2xl bg-gray-50 transition focus-within:ring-2 focus-within:ring-blue-200">
+                  <span className="text-gray-400">🔎</span>
+                  <input
+                    className="w-full bg-transparent outline-none text-sm"
+                    placeholder="Search documents, history..."
+                  />
+                </div>
+                <a
+                  href="/patient/messages"
+                  className="px-5 py-3 rounded-2xl bg-[#178d95] font-medium text-white shadow-sm hover:opacity-95 transition active:scale-[0.98] hover:shadow-md hover:-translate-y-1 duration-300"
+                >
+                  AI Chat ↗
+                </a>
               </div>
-              <div className="tip-item">
-                <h4>Upload Key Reports</h4>
-                <p>Attach recent reports before appointments so doctors can review them early.</p>
+              <div className="mt-3 text-xs text-gray-500">
+                Tip: Keep your profile updated to get better AI guidance suggestions.
               </div>
+            </motion.div>
+
+            <div className="grid sm:grid-cols-2 gap-5">
+              <motion.a
+                href="/patient/book-appointment"
+                className="bg-white rounded-3xl shadow-sm p-5 hover:shadow-md transition"
+                variants={fadeUp}
+                initial="hidden"
+                animate="visible"
+                custom={2}
+                whileHover={{ y: -2 }}
+              >
+                <div className="font-semibold text-gray-900">Appointments</div>
+                <div className="text-sm text-gray-500 mt-1">Schedule a consultation</div>
+                <div className="mt-6 text-3xl font-semibold text-[#178d95]">Book Now</div>
+                <div className="mt-4 text-sm text-black font-medium">Book →</div>
+              </motion.a>
+
+              <motion.a
+                href="/patient/documents"
+                className="bg-white rounded-3xl shadow-sm p-5 hover:shadow-md transition"
+                variants={fadeUp}
+                initial="hidden"
+                animate="visible"
+                custom={3}
+                whileHover={{ y: -2 }}
+              >
+                <div className="font-semibold text-gray-900">My Files</div>
+                <div className="text-sm text-gray-500 mt-1">Upload & manage reports</div>
+                <div className="mt-6 text-3xl font-semibold text-[#178d95]">Documents</div>
+                <div className="mt-4 text-sm text-black font-medium">Open →</div>
+              </motion.a>
             </div>
-            <Link to="/patient/profile" className="widget-link">
-              Manage Profile →
-            </Link>
+
+            <motion.div
+              className="bg-white rounded-3xl shadow-sm p-5"
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+              custom={4}
+            >
+              <div className="flex items-center justify-between">
+                <div className="font-semibold text-gray-900">Profile</div>
+                <a href="/patient/profile" className="text-sm text-[#178d95] hover:underline">
+                  Edit →
+                </a>
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <div className="rounded-2xl bg-teal-50 p-4">
+                  <div className="text-xs text-gray-500">Patient ID</div>
+                  <div className="mt-1 text-sm font-semibold text-gray-900">
+                    {me?.patientId || "—"}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl bg-teal-50 p-4">
+                  <div className="text-xs text-gray-500">Email</div>
+                  <div className="mt-1 text-sm font-semibold text-gray-900 truncate">
+                    {me?.email || "—"}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              className="rounded-3xl overflow-hidden shadow-sm bg-[#178d95] text-white relative"
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+              custom={5}
+            >
+              <div className="p-6">
+                <div className="text-xs text-white/70">Message (AI Chat)</div>
+                <div className="mt-2 text-2xl font-semibold">Get safe guidance</div>
+                <div className="mt-2 text-sm text-white/70 max-w-sm">
+                  AI provides general health information only — not a diagnosis. For emergencies,
+                  contact a doctor or hospital.
+                </div>
+
+                <div className="mt-6 flex gap-3">
+                  <a
+                    href="/patient/messages"
+                    className="px-4 py-2 rounded-2xl bg-white/10 border border-white/15 text-sm hover:bg-white/15 transition"
+                  >
+                    Open AI Chat
+                  </a>
+                  <a
+                    href="/patient/documents"
+                    className="px-4 py-2 rounded-2xl bg-white text-[#178d95] text-sm font-medium hover:opacity-95 transition"
+                  >
+                    Upload Document
+                  </a>
+                </div>
+              </div>
+
+              <div className="absolute right-4 top-4 w-10 h-10 rounded-full bg-white/10 border border-white/15 grid place-items-center">
+                ↗
+              </div>
+            </motion.div>
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 }
-
-export default PatientDashboard;

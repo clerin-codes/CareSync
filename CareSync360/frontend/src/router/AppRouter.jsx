@@ -11,6 +11,11 @@ import RegisterPatient from "../pages/RegisterPatient";
 import Doctors from "../pages/Doctors";
 import DoctorDetails from "../pages/DoctorDetails";
 import PatientDashboard from "../pages/patient/PatientDashboard";
+import AiChat from "../pages/patient/AiChat";
+import PatientMedicalHistory from "../pages/patient/PatientMedicalHistory";
+import Profile from "../pages/patient/Profile";
+import Directory from "../pages/patient/Directory";
+import Document from "../pages/patient/Document";
 import BookAppointment from "../pages/patient/BookAppointment";
 import MyAppointments from "../pages/patient/MyAppointments";
 import PatientPayments from "../pages/patient/PatientPayments";
@@ -89,7 +94,11 @@ export default function AppRouter() {
             />
             <Route path="/patient/appointments" element={<MyAppointments />} />
             <Route path="/patient/payments" element={<PatientPayments />} />
-            <Route path="/patient/profile" element={<PatientProfile />} />
+            <Route path="/patient/profile" element={<Profile />} />
+            <Route path="/patient/medical-history" element={<PatientMedicalHistory />} />
+            <Route path="/patient/ai-chat" element={<AiChat />} />
+            <Route path="/patient/directory" element={<Directory />} />
+            <Route path="/patient/documents" element={<Document />} />
             <Route path="/patient/reports" element={<PatientReports />} />
             <Route
               path="/patient/prescriptions"
