@@ -25,6 +25,40 @@ import AdminDashboard from "../pages/admin/AdminDashboard";
 import CreateDoctorAccount from "../pages/admin/CreateDoctorAccount";
 import CreateDoctorProfile from "../pages/admin/CreateDoctorProfile";
 import ConsultationRoom from "../pages/ConsultationRoom";
+import { useAuth } from "../context/AuthContext";
+
+function AdminTopbar({ user }) {
+  const now = new Date();
+  const dateLabel = new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric"
+  }).format(now);
+
+  return (
+    <header className="admin-topbar" aria-label="Admin workspace header">
+      <div className="admin-topbar__title">
+        <h2>Dashboard</h2>
+        <p>{dateLabel}</p>
+      </div>
+
+      <div className="admin-topbar__actions" role="presentation">
+        <button type="button" className="admin-topbar__icon" aria-label="Theme options">
+          <span>◔</span>
+        </button>
+        <button type="button" className="admin-topbar__icon" aria-label="Notifications">
+          <span>•</span>
+        </button>
+
+        <div className="admin-topbar__user" title={user?.name || "Admin"}>
+          <span className="admin-topbar__avatar">{(user?.name || "A").charAt(0).toUpperCase()}</span>
+          <span>{user?.name || "Admin"}</span>
+        </div>
+      </div>
+    </header>
+  );
+}
 
 function PublicLayout() {
   return (
@@ -39,10 +73,14 @@ function PublicLayout() {
 }
 
 function DashboardLayout() {
+  const { user } = useAuth();
+  const roleClass = (user?.role || "guest").toLowerCase();
+
   return (
-    <div className="dashboard-shell">
+    <div className={`dashboard-shell dashboard-shell--${roleClass}`}>
       <DashboardSidebar />
       <main className="dashboard-main">
+        {user?.role === "ADMIN" ? <AdminTopbar user={user} /> : null}
         <Outlet />
       </main>
     </div>

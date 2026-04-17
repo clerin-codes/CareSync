@@ -114,13 +114,9 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: frontend
-    command: sh -c "[ -x /app/node_modules/.bin/vite ] || npm install && npm run dev -- --host 0.0.0.0 --port 5173"
     environment:
-      VITE_API_BASE_URL: http://localhost:4000
+      VITE_API_BASE_URL: http://127.0.0.1:4000
     ports:
       - "5173:5173"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
     depends_on:
       - gateway

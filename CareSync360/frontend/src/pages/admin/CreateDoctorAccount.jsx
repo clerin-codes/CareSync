@@ -1,186 +1,89 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import PageHeader from "../../components/PageHeader";
-import { authService } from "../../services/authService";
 
 function CreateDoctorAccount() {
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-  const [createdDoctor, setCreatedDoctor] = useState(null);
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setError("");
-    setCreatedDoctor(null);
-    setSaving(true);
-
-    try {
-      const data = await authService.createDoctorAccount(form);
-      setCreatedDoctor(data.user);
-      setForm({ name: "", email: "", password: "" });
-    } catch (err) {
-      setError(err.response?.data?.message || "Doctor account creation failed.");
-    } finally {
-      setSaving(false);
-    }
-  };
+  const users = [
+    { id: 1, name: "c", email: "gabewe8036@bmoar.com", role: "PATIENT", status: "ACTIVE" },
+    { id: 2, name: "System Admin", email: "admin@careline360.com", role: "ADMIN", status: "ACTIVE" },
+    { id: 3, name: "Pirakash Ravindran", email: "pirakash@gmail.com", role: "PATIENT", status: "ACTIVE" },
+    { id: 4, name: "shajana SS", email: "0777777777", role: "PATIENT", status: "ACTIVE" },
+    { id: 5, name: "Test User XYZ", email: "testuserxyz@example.com", role: "PATIENT", status: "ACTIVE" },
+    { id: 6, name: "Test Patient", email: "testpatient@example.com", role: "PATIENT", status: "ACTIVE" }
+  ];
 
   return (
-    <section className="dashboard-page admin-account-page">
-      <PageHeader
-        title="Create Doctor Account"
-        subtitle="Step 1: Create doctor login account in auth-service."
-        action={
-          <Link to="/admin/create-doctor-profile" className="btn btn-outline btn-small">
-            Open Step 2
-          </Link>
-        }
-      />
-
-      <div className="profile-layout admin-account-layout">
-        <form className="form-card profile-form-card admin-account-form" onSubmit={handleSubmit}>
-          <div className="profile-form-head admin-account-form-head">
-            <span className="eyebrow">Admin Setup</span>
-            <h2>Doctor Login Credentials</h2>
-            <p>
-              Create the doctor&apos;s sign-in account first. The new account will appear in Step 2
-              so the profile can be linked without typing a raw user ID.
-            </p>
-          </div>
-
-          <div className="admin-account-summary">
-            <div className="admin-account-summary-card">
-              <span>Step</span>
-              <strong>1 of 2</strong>
-            </div>
-            <div className="admin-account-summary-card">
-              <span>Role</span>
-              <strong>DOCTOR</strong>
-            </div>
-            <div className="admin-account-summary-card">
-              <span>Next Output</span>
-              <strong>User ID</strong>
-            </div>
-          </div>
-
-          <div className="form-grid two-col admin-account-grid">
-            <label className="required">
-              Doctor Name
-              <input
-                type="text"
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                placeholder="Dr. Sarah Perera"
-                required
-              />
-            </label>
-
-            <label className="required">
-              Doctor Email
-              <input
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                placeholder="doctor@hospital.com"
-                required
-              />
-            </label>
-
-            <label className="span-2 required">
-              Temporary Password
-              <input
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                placeholder="Create a temporary password"
-                required
-              />
-            </label>
-          </div>
-
-          {error && <p className="form-error">{error}</p>}
-
-          <div className="profile-form-footer admin-account-form-footer">
-            <p className="admin-account-inline-note">
-              Share the temporary password securely. The doctor can use it for the first sign-in.
-            </p>
-
-            <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? "Creating..." : "Create Doctor Account"}
-            </button>
-          </div>
-        </form>
-
-        <aside className="profile-side admin-account-side">
-          <div
-            className={`panel admin-account-status-panel${
-              createdDoctor ? " success-panel admin-account-status-panel--success" : ""
-            }`}
-          >
-            <div className="admin-account-status-head">
-              <div>
-                <h3>{createdDoctor ? "Doctor account created" : "Awaiting submission"}</h3>
-                <p>
-                  {createdDoctor
-                    ? "Use these values in the next step to connect the doctor profile."
-                    : "The generated account details will appear here after successful creation."}
-                </p>
-              </div>
-              {createdDoctor && <span className="admin-account-role-badge">Ready</span>}
-            </div>
-
-            <div className="doctor-summary-list">
-              <div className="doctor-summary-item">
-                <span>User ID</span>
-                <strong>{createdDoctor?.id || "Not generated yet"}</strong>
-              </div>
-              <div className="doctor-summary-item">
-                <span>Email</span>
-                <strong>{createdDoctor?.email || form.email || "Not provided yet"}</strong>
-              </div>
-              <div className="doctor-summary-item">
-                <span>Role</span>
-                <strong>{createdDoctor?.role || "DOCTOR"}</strong>
-              </div>
-            </div>
-
-            {createdDoctor && (
-              <Link to="/admin/create-doctor-profile" className="btn btn-primary admin-account-next">
-                Continue to Create Profile
-              </Link>
-            )}
-          </div>
-
-          <div className="panel admin-account-help-panel">
-            <h3>Onboarding Sequence</h3>
-            <ul className="admin-account-checklist">
-              <li>Create the doctor login account on this page.</li>
-              <li>Select the new doctor account from the Step 2 account list.</li>
-              <li>Complete profile details so appointments map to the correct login.</li>
-            </ul>
-          </div>
-
-          <div className="panel admin-account-help-panel">
-            <h3>Credential Checklist</h3>
-            <ul className="admin-account-checklist">
-              <li>Use the doctor&apos;s working email address.</li>
-              <li>Set a temporary password that can be shared privately.</li>
-              <li>Confirm the account appears in Step 2 before creating the doctor profile.</li>
-            </ul>
-          </div>
-        </aside>
+    <section className="dashboard-content dashboard-page">
+      <div className="ad-mu-header">
+        <div className="ad-header-text">
+          <h1>User Management</h1>
+          <p>Total 33 users registered in the system</p>
+        </div>
+        <button className="btn-add-user">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Add New User
+        </button>
       </div>
+
+      <div className="ad-mu-toolbar">
+        <div className="ad-mu-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" placeholder="Search by name, email or phone..." />
+        </div>
+        <div className="ad-mu-filter">
+          <select>
+            <option>All Roles</option>
+            <option>Patient</option>
+            <option>Doctor</option>
+            <option>Admin</option>
+          </select>
+        </div>
+      </div>
+
+      <table className="ad-mu-table">
+        <thead>
+          <tr>
+            <th>User Identity</th>
+            <th>Designation</th>
+            <th>Status</th>
+            <th style={{ textAlign: "right" }}>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.map(u => (
+            <tr key={u.id}>
+              <td>
+                <div className="ad-table-user">
+                  <div className="ad-table-avatar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                  </div>
+                  <div className="ad-table-user-info">
+                    <strong>{u.name}</strong>
+                    <span>{u.email}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span className={`ad-badge ${u.role === "ADMIN" ? "ad-badge-admin" : "ad-badge-patient"}`}>
+                  {u.role}
+                </span>
+              </td>
+              <td>
+                <div className="ad-status-active">{u.status}</div>
+              </td>
+              <td style={{ textAlign: "right" }}>
+                <div className="ad-actions" style={{ justifyContent: "flex-end" }}>
+                  <button><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></button>
+                  <button><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg></button>
+                  <button className="active-toggle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="5" width="22" height="14" rx="7" ry="7"></rect><circle cx="16" cy="12" r="3"></circle></svg></button>
+                  <button><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </section>
   );
 }
 
 export default CreateDoctorAccount;
+
