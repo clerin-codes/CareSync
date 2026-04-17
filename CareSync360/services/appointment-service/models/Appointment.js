@@ -15,6 +15,10 @@ const appointmentSchema = new mongoose.Schema(
       type: String,
       required: true
     },
+    patientPhone: {
+      type: String,
+      default: ""
+    },
     doctorId: {
       type: String,
       required: true,
@@ -31,6 +35,10 @@ const appointmentSchema = new mongoose.Schema(
     doctorEmail: {
       type: String,
       required: true
+    },
+    doctorPhone: {
+      type: String,
+      default: ""
     },
     specialization: {
       type: String,

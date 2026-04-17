@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Stethoscope, Building2, Clock, DollarSign } from "lucide-react";
+import { Stethoscope, Building2, Clock, DollarSign, Phone } from "lucide-react";
 import EmptyState from "../../components/EmptyState";
 import Loader from "../../components/Loader";
 import PageHeader from "../../components/PageHeader";
@@ -11,6 +11,7 @@ function DoctorProfile() {
     experience: 0,
     hospital: "",
     consultationFee: 0,
+    phone: "",
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -31,6 +32,7 @@ function DoctorProfile() {
           experience: data.experience || 0,
           hospital: data.hospital || "",
           consultationFee: data.consultationFee || 0,
+          phone: data.phone || "",
         });
       } catch (err) {
         setProfileExists(false);
@@ -62,6 +64,7 @@ function DoctorProfile() {
         experience: Number(form.experience),
         hospital: form.hospital,
         consultationFee: Number(form.consultationFee),
+        phone: form.phone,
       };
       const data = await doctorService.updateMyProfile(payload);
       setSuccess(data.message || "Profile updated successfully.");
@@ -78,6 +81,7 @@ function DoctorProfile() {
       Number(form.experience) > 0,
       Boolean(form.hospital.trim()),
       Number(form.consultationFee) > 0,
+      Boolean(form.phone.trim()),
     ];
 
     return Math.round((checks.filter(Boolean).length / checks.length) * 100);
@@ -202,6 +206,26 @@ function DoctorProfile() {
                   required
                 />
               </div>
+
+              <div>
+                <label className="dr-label" htmlFor="phone">
+                  <Phone
+                    size={11}
+                    strokeWidth={1.5}
+                    style={{ display: "inline", marginRight: "0.3rem" }}
+                  />
+                  Phone Number
+                </label>
+                <input
+                  id="phone"
+                  className="dr-input"
+                  type="text"
+                  name="phone"
+                  value={form.phone}
+                  onChange={handleChange}
+                  placeholder="9477XXXXXXX"
+                />
+              </div>
             </div>
 
             <div style={{ marginTop: "1.5rem" }}>
@@ -263,6 +287,10 @@ function DoctorProfile() {
                       ? `LKR ${Number(form.consultationFee).toLocaleString()}`
                       : "Not set"}
                   </strong>
+                </div>
+                <div className="dr-summary-item">
+                  <span>Phone</span>
+                  <strong>{form.phone || "Not set"}</strong>
                 </div>
               </div>
             </div>

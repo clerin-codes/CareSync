@@ -148,6 +148,7 @@ const createDoctorProfile = async (req, res) => {
       userId,
       name,
       email,
+      phone,
       specialization,
       experience,
       hospital,
@@ -158,6 +159,7 @@ const createDoctorProfile = async (req, res) => {
     const normalizedUserId = (userId || "").toString().trim();
     const normalizedName = (name || "").toString().trim();
     const normalizedEmail = (email || "").toString().trim().toLowerCase();
+    const normalizedPhone = (phone || "").toString().trim();
     const normalizedSpecialization = (specialization || "").toString().trim();
 
     if (!normalizedUserId || !normalizedName || !normalizedEmail || !normalizedSpecialization) {
@@ -182,6 +184,7 @@ const createDoctorProfile = async (req, res) => {
       userId: normalizedUserId,
       name: normalizedName,
       email: normalizedEmail,
+      phone: normalizedPhone,
       specialization: normalizedSpecialization,
       experience,
       hospital,
@@ -215,7 +218,7 @@ const getMyProfile = async (req, res) => {
 const updateMyProfile = async (req, res) => {
   try {
     // Doctor can update only these fields.
-    const allowedFields = ["specialization", "experience", "hospital", "consultationFee"];
+    const allowedFields = ["specialization", "experience", "hospital", "consultationFee", "phone"];
     const updates = {};
 
     allowedFields.forEach((field) => {
@@ -226,7 +229,7 @@ const updateMyProfile = async (req, res) => {
 
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({
-        message: "No valid fields provided. Allowed: specialization, experience, hospital, consultationFee"
+        message: "No valid fields provided. Allowed: specialization, experience, hospital, consultationFee, phone"
       });
     }
 

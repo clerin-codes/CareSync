@@ -24,12 +24,18 @@ spec:
             - name: PORT
               value: "4006"
             - name: SMTP_HOST
-              value: ""
+              value: "smtp.gmail.com"
             - name: SMTP_PORT
               value: "587"
             - name: SMTP_USER
-              value: ""
+              value: "sheronclerin1805@gmail.com"
             - name: SMTP_PASS
-              value: ""
-            - name: SMTP_FROM
-              value: "smart-healthcare@example.com"
+              value: "yyhq lycb omff ucrp"
+            - name: EMAIL_FROM
+              value: "CareLine@360.com"
+            - name: SMSLENZ_USER_ID
+              value: "1161"
+            - name: SMSLENZ_API_KEY
+              value: "764283fd-f3cb-49a0-b71c-b13c43a3361d"
+            - name: SMSLENZ_SENDER_ID
+              value: "SMSlenzDEMO"

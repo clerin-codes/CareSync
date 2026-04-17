@@ -3,6 +3,7 @@ const Appointment = require("../models/Appointment");
 const SLOT_LOCK_STATUSES = ["PENDING", "ACCEPTED", "COMPLETED"];
 
 const getDoctorServiceUrl = () => (process.env.DOCTOR_SERVICE_URL || "http://doctor-service:4002").replace(/\/+$/, "");
+const getPatientServiceUrl = () => (process.env.PATIENT_SERVICE_URL || "http://patient-service:4004").replace(/\/+$/, "");
 const getNotificationServiceUrl = () =>
   (process.env.NOTIFICATION_SERVICE_URL || "http://notification-service:4006").replace(/\/+$/, "");
 
@@ -74,6 +75,22 @@ const fetchDoctorProfile = async (doctorProfileId) => {
   return response.json();
 };
 
+const fetchMyPatientProfile = async (authHeader) => {
+  if (!authHeader) return null;
+
+  const response = await fetch(`${getPatientServiceUrl()}/patients/me/profile`, {
+    headers: {
+      Authorization: authHeader
+    }
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  return response.json();
+};
+
 const notifyByEmail = async ({ to, subject, message }) => {
   if (!to) return;
 
@@ -93,6 +110,28 @@ const notifyByEmail = async ({ to, subject, message }) => {
     }
   } catch (error) {
     console.error("Notification send failed:", error.message);
+  }
+};
+
+const notifyBySms = async ({ to, message }) => {
+  if (!to || !message) return;
+
+  try {
+    const response = await fetch(`${getNotificationServiceUrl()}/notifications/sms`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ to, message })
+    });
+
+    if (!response.ok) {
+      const body = await response.text();
+      console.error("SMS notification service returned an error:", {
+        status: response.status,
+        body
+      });
+    }
+  } catch (error) {
+    console.error("SMS notification send failed:", error.message);
   }
 };
 
@@ -313,15 +352,20 @@ const bookAppointment = async (req, res) => {
 
     const normalizedDoctorId = doctor.userId.toString().trim();
     const normalizedDoctorEmail = (doctor.email || "").toString().trim().toLowerCase();
+    const normalizedDoctorPhone = normalizeString(doctor.phone || "");
+    const patientProfile = await fetchMyPatientProfile(req.headers.authorization || "");
+    const normalizedPatientPhone = normalizeString(patientProfile?.phone || "");
 
     const appointment = await Appointment.create({
       patientId: req.user.id,
       patientName: req.user.name,
       patientEmail: req.user.email,
+      patientPhone: normalizedPatientPhone,
       doctorId: normalizedDoctorId,
       doctorProfileId: doctor._id.toString(),
       doctorName: doctor.name,
       doctorEmail: normalizedDoctorEmail,
+      doctorPhone: normalizedDoctorPhone,
       specialization: doctor.specialization || "",
       consultationFee: Number(doctor.consultationFee || 0),
       reason,
@@ -335,11 +379,19 @@ const bookAppointment = async (req, res) => {
       subject: "Appointment booked",
       message: `Your appointment request with Dr. ${doctor.name} is now pending.`
     });
+    void notifyBySms({
+      to: normalizedPatientPhone,
+      message: `CareSync: Your appointment request with Dr. ${doctor.name} is now pending.`
+    });
 
     void notifyByEmail({
       to: doctor.email,
       subject: "New appointment request",
       message: `${req.user.name} requested an appointment on ${appointment.timeSlot}, ${appointment.appointmentDate.toDateString()}.`
+    });
+    void notifyBySms({
+      to: normalizedDoctorPhone,
+      message: `CareSync: New appointment request from ${req.user.name} on ${appointment.timeSlot}, ${appointment.appointmentDate.toDateString()}.`
     });
 
     return res.status(201).json({
@@ -608,6 +660,19 @@ const completeAppointment = async (req, res) => {
       to: appointment.patientEmail,
       subject: "Consultation completed",
       message: `Your consultation with Dr. ${appointment.doctorName} has been marked as completed.`
+    });
+    void notifyBySms({
+      to: appointment.patientPhone,
+      message: `CareSync: Your consultation with Dr. ${appointment.doctorName} has been marked as completed.`
+    });
+    void notifyByEmail({
+      to: appointment.doctorEmail,
+      subject: "Consultation completed",
+      message: `Consultation with ${appointment.patientName} has been marked as completed.`
+    });
+    void notifyBySms({
+      to: appointment.doctorPhone,
+      message: `CareSync: Consultation with ${appointment.patientName} has been marked as completed.`
     });
 
     return res.status(200).json({
