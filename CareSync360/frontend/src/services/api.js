@@ -13,4 +13,27 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (!error.response) {
+      const message =
+        error.code === "ECONNABORTED"
+          ? "Request timed out. Please check your connection and try again."
+          : "Network error. Please check your connection and try again.";
+      error.response = { data: { message } };
+      return Promise.reject(error);
+    }
+
+    const data = error.response.data;
+    if (typeof data !== "object" || data === null) {
+      error.response.data = {
+        message: `Service returned an unexpected response (status ${error.response.status}).`
+      };
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 export default api;
