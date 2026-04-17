@@ -6,6 +6,7 @@ const sampleDoctors = [
   {
     name: "Dr. John Smith",
     email: "john.smith@hospital.com",
+    phone: "94771234567",
     password: "password123",
     specialization: "Cardiology",
     experience: 10,
@@ -19,6 +20,7 @@ const sampleDoctors = [
   {
     name: "Dr. Sarah Johnson",
     email: "sarah.johnson@hospital.com",
+    phone: "94772345678",
     password: "password123",
     specialization: "Dermatology",
     experience: 8,
@@ -32,6 +34,7 @@ const sampleDoctors = [
   {
     name: "Dr. Michael Chen",
     email: "michael.chen@hospital.com",
+    phone: "94773456789",
     password: "password123",
     specialization: "Pediatrics",
     experience: 15,
@@ -45,6 +48,7 @@ const sampleDoctors = [
   {
     name: "Dr. Emily Davis",
     email: "emily.davis@hospital.com",
+    phone: "94774567890",
     password: "password123",
     specialization: "Orthopedics",
     experience: 12,
@@ -58,6 +62,7 @@ const sampleDoctors = [
   {
     name: "Dr. Robert Wilson",
     email: "robert.wilson@hospital.com",
+    phone: "94775678901",
     password: "password123",
     specialization: "Neurology",
     experience: 20,
@@ -149,7 +154,7 @@ async function seedDoctors() {
           userId: userId,
           name: doctor.name,
           email: doctor.email,
-          phone: "",
+          phone: doctor.phone,
           specialization: doctor.specialization,
           experience: doctor.experience,
           hospital: doctor.hospital,

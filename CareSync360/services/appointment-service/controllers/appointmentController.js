@@ -75,6 +75,25 @@ const fetchDoctorProfile = async (doctorProfileId) => {
   return response.json();
 };
 
+const fetchDoctorPhoneByEmail = async (email) => {
+  const normalizedEmail = normalizeString(email).toLowerCase();
+  if (!normalizedEmail) return "";
+
+  try {
+    const response = await fetch(`${getDoctorServiceUrl()}/doctors?email=${encodeURIComponent(normalizedEmail)}`);
+    if (!response.ok) {
+      return "";
+    }
+
+    const doctors = await response.json();
+    const list = Array.isArray(doctors) ? doctors : [];
+    const withPhone = list.find((item) => normalizeString(item?.phone));
+    return normalizeString(withPhone?.phone || "");
+  } catch {
+    return "";
+  }
+};
+
 const fetchMyPatientProfile = async (authHeader) => {
   if (!authHeader) return null;
 
@@ -353,6 +372,8 @@ const bookAppointment = async (req, res) => {
     const normalizedDoctorId = doctor.userId.toString().trim();
     const normalizedDoctorEmail = (doctor.email || "").toString().trim().toLowerCase();
     const normalizedDoctorPhone = normalizeString(doctor.phone || "");
+    const resolvedDoctorPhone =
+      normalizedDoctorPhone || (await fetchDoctorPhoneByEmail(normalizedDoctorEmail));
     const patientProfile = await fetchMyPatientProfile(req.headers.authorization || "");
     const normalizedPatientPhone = normalizeString(patientProfile?.phone || "");
 
@@ -365,7 +386,7 @@ const bookAppointment = async (req, res) => {
       doctorProfileId: doctor._id.toString(),
       doctorName: doctor.name,
       doctorEmail: normalizedDoctorEmail,
-      doctorPhone: normalizedDoctorPhone,
+      doctorPhone: resolvedDoctorPhone,
       specialization: doctor.specialization || "",
       consultationFee: Number(doctor.consultationFee || 0),
       reason,
@@ -390,7 +411,7 @@ const bookAppointment = async (req, res) => {
       message: `${req.user.name} requested an appointment on ${appointment.timeSlot}, ${appointment.appointmentDate.toDateString()}.`
     });
     void notifyBySms({
-      to: normalizedDoctorPhone,
+      to: resolvedDoctorPhone,
       message: `CareSync: New appointment request from ${req.user.name} on ${appointment.timeSlot}, ${appointment.appointmentDate.toDateString()}.`
     });
 

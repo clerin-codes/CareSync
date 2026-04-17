@@ -34,7 +34,25 @@ const createTransporter = () => {
   });
 };
 
-const normalizePhoneNumber = (value = "") => value.toString().replace(/\s+/g, "").trim();
+const normalizePhoneNumber = (value = "") => {
+  const raw = value.toString().replace(/[\s\-()]/g, "").trim();
+
+  if (!raw) return "";
+  if (/^\+\d+$/.test(raw)) {
+    return raw;
+  }
+  if (/^0\d{9}$/.test(raw)) {
+    return `+94${raw.slice(1)}`;
+  }
+  if (/^94\d{9}$/.test(raw)) {
+    return `+${raw}`;
+  }
+  if (/^\d{9}$/.test(raw)) {
+    return `+94${raw}`;
+  }
+
+  return raw;
+};
 
 const sendSms = async (req, res) => {
   try {
@@ -54,21 +72,41 @@ const sendSms = async (req, res) => {
       });
     }
 
+    const smsApiUrl = normalizeEnvValue(process.env.SMSLENZ_API_URL) || "https://smslenz.lk/api/send-sms";
+    const contact = normalizePhoneNumber(to);
+
+    if (!contact) {
+      return res.status(400).json({ message: "Invalid recipient phone number" });
+    }
+
     const smsPayload = {
       user_id: userId,
       api_key: apiKey,
       sender_id: senderId,
-      mobile: normalizePhoneNumber(to),
+      contact,
       message: normalizeEnvValue(message)
     };
 
-    const response = await fetch("https://smslenz.lk/api/v3/sms/send", {
+    let response = await fetch(smsApiUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify(smsPayload)
     });
+
+    // Fallback to urlencoded payload if provider rejects JSON payload.
+    if (!response.ok) {
+      const urlEncodedBody = new URLSearchParams(smsPayload).toString();
+
+      response = await fetch(smsApiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: urlEncodedBody
+      });
+    }
 
     const bodyText = await response.text();
 

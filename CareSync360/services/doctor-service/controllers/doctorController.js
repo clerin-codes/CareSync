@@ -113,11 +113,15 @@ const buildDoctorIdentityFilter = (user) => {
 
 const getDoctors = async (req, res) => {
   try {
-    const { specialization } = req.query;
+    const { specialization, email } = req.query;
     const filter = {};
 
     if (specialization) {
       filter.specialization = { $regex: specialization, $options: "i" };
+    }
+
+    if (email) {
+      filter.email = { $regex: `^${escapeRegex(email)}$`, $options: "i" };
     }
 
     const doctors = await Doctor.find(filter).sort({ createdAt: -1 });
@@ -168,17 +172,37 @@ const createDoctorProfile = async (req, res) => {
         .json({ message: "userId, name, email and specialization are required" });
     }
 
-    const existingDoctor = await Doctor.findOne({ userId: normalizedUserId });
-    if (existingDoctor) {
-      return res.status(400).json({ message: "Doctor profile already exists for this userId" });
-    }
-
     const availabilityValidation = validateAvailabilityPayload(availability || []);
     if (!availabilityValidation.valid) {
       return res.status(400).json({ message: availabilityValidation.message });
     }
 
     const normalizedAvailability = normalizeAvailabilityEntries(availability || []);
+
+    const existingDoctor = await Doctor.findOne({ userId: normalizedUserId });
+    if (existingDoctor) {
+      const doctor = await Doctor.findByIdAndUpdate(
+        existingDoctor._id,
+        {
+          $set: {
+            name: normalizedName,
+            email: normalizedEmail,
+            phone: normalizedPhone,
+            specialization: normalizedSpecialization,
+            experience,
+            hospital,
+            consultationFee,
+            availability: normalizedAvailability
+          }
+        },
+        { new: true, runValidators: true }
+      );
+
+      return res.status(200).json({
+        message: "Doctor profile already exists. Existing profile updated successfully",
+        doctor
+      });
+    }
 
     const doctor = await Doctor.create({
       userId: normalizedUserId,
