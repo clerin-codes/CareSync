@@ -34,6 +34,102 @@ const createTransporter = () => {
   });
 };
 
+const normalizePhoneNumber = (value = "") => {
+  const raw = value.toString().replace(/[\s\-()]/g, "").trim();
+
+  if (!raw) return "";
+  if (/^\+\d+$/.test(raw)) {
+    return raw;
+  }
+  if (/^0\d{9}$/.test(raw)) {
+    return `+94${raw.slice(1)}`;
+  }
+  if (/^94\d{9}$/.test(raw)) {
+    return `+${raw}`;
+  }
+  if (/^\d{9}$/.test(raw)) {
+    return `+94${raw}`;
+  }
+
+  return raw;
+};
+
+const sendSms = async (req, res) => {
+  try {
+    const { to, message } = req.body;
+
+    if (!to || !message) {
+      return res.status(400).json({ message: "to and message are required" });
+    }
+
+    const userId = normalizeEnvValue(process.env.SMSLENZ_USER_ID);
+    const apiKey = normalizeEnvValue(process.env.SMSLENZ_API_KEY);
+    const senderId = normalizeEnvValue(process.env.SMSLENZ_SENDER_ID);
+
+    if (!userId || !apiKey || !senderId) {
+      return res.status(500).json({
+        message: "SMSLenz credentials are missing. Configure SMSLENZ_USER_ID, SMSLENZ_API_KEY and SMSLENZ_SENDER_ID"
+      });
+    }
+
+    const smsApiUrl = normalizeEnvValue(process.env.SMSLENZ_API_URL) || "https://smslenz.lk/api/send-sms";
+    const contact = normalizePhoneNumber(to);
+
+    if (!contact) {
+      return res.status(400).json({ message: "Invalid recipient phone number" });
+    }
+
+    const smsPayload = {
+      user_id: userId,
+      api_key: apiKey,
+      sender_id: senderId,
+      contact,
+      message: normalizeEnvValue(message)
+    };
+
+    let response = await fetch(smsApiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(smsPayload)
+    });
+
+    // Fallback to urlencoded payload if provider rejects JSON payload.
+    if (!response.ok) {
+      const urlEncodedBody = new URLSearchParams(smsPayload).toString();
+
+      response = await fetch(smsApiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: urlEncodedBody
+      });
+    }
+
+    const bodyText = await response.text();
+
+    if (!response.ok) {
+      return res.status(502).json({
+        message: "SMS provider request failed",
+        providerStatus: response.status,
+        providerResponse: bodyText
+      });
+    }
+
+    return res.status(200).json({
+      message: "SMS notification sent",
+      providerResponse: bodyText
+    });
+  } catch (error) {
+    console.error("SMS notification failed:", {
+      message: error.message
+    });
+    return res.status(500).json({ message: "Server error while sending SMS notification" });
+  }
+};
+
 const sendEmail = async (req, res) => {
   try {
     const { to, subject, message } = req.body;
@@ -69,5 +165,6 @@ const sendEmail = async (req, res) => {
 };
 
 module.exports = {
-  sendEmail
+  sendEmail,
+  sendSms
 };

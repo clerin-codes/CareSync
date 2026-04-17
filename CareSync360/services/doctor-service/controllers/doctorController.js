@@ -113,11 +113,15 @@ const buildDoctorIdentityFilter = (user) => {
 
 const getDoctors = async (req, res) => {
   try {
-    const { specialization } = req.query;
+    const { specialization, email } = req.query;
     const filter = {};
 
     if (specialization) {
       filter.specialization = { $regex: specialization, $options: "i" };
+    }
+
+    if (email) {
+      filter.email = { $regex: `^${escapeRegex(email)}$`, $options: "i" };
     }
 
     const doctors = await Doctor.find(filter).sort({ createdAt: -1 });
@@ -148,6 +152,7 @@ const createDoctorProfile = async (req, res) => {
       userId,
       name,
       email,
+      phone,
       specialization,
       experience,
       hospital,
@@ -158,17 +163,13 @@ const createDoctorProfile = async (req, res) => {
     const normalizedUserId = (userId || "").toString().trim();
     const normalizedName = (name || "").toString().trim();
     const normalizedEmail = (email || "").toString().trim().toLowerCase();
+    const normalizedPhone = (phone || "").toString().trim();
     const normalizedSpecialization = (specialization || "").toString().trim();
 
     if (!normalizedUserId || !normalizedName || !normalizedEmail || !normalizedSpecialization) {
       return res
         .status(400)
         .json({ message: "userId, name, email and specialization are required" });
-    }
-
-    const existingDoctor = await Doctor.findOne({ userId: normalizedUserId });
-    if (existingDoctor) {
-      return res.status(400).json({ message: "Doctor profile already exists for this userId" });
     }
 
     const availabilityValidation = validateAvailabilityPayload(availability || []);
@@ -178,10 +179,36 @@ const createDoctorProfile = async (req, res) => {
 
     const normalizedAvailability = normalizeAvailabilityEntries(availability || []);
 
+    const existingDoctor = await Doctor.findOne({ userId: normalizedUserId });
+    if (existingDoctor) {
+      const doctor = await Doctor.findByIdAndUpdate(
+        existingDoctor._id,
+        {
+          $set: {
+            name: normalizedName,
+            email: normalizedEmail,
+            phone: normalizedPhone,
+            specialization: normalizedSpecialization,
+            experience,
+            hospital,
+            consultationFee,
+            availability: normalizedAvailability
+          }
+        },
+        { new: true, runValidators: true }
+      );
+
+      return res.status(200).json({
+        message: "Doctor profile already exists. Existing profile updated successfully",
+        doctor
+      });
+    }
+
     const doctor = await Doctor.create({
       userId: normalizedUserId,
       name: normalizedName,
       email: normalizedEmail,
+      phone: normalizedPhone,
       specialization: normalizedSpecialization,
       experience,
       hospital,
@@ -194,6 +221,12 @@ const createDoctorProfile = async (req, res) => {
       doctor
     });
   } catch (error) {
+    console.error("Doctor profile creation failed:", {
+      message: error.message,
+      code: error.code,
+      keyValue: error.keyValue,
+      errors: error.errors
+    });
     return res.status(500).json({ message: "Server error while creating doctor profile" });
   }
 };
@@ -215,7 +248,7 @@ const getMyProfile = async (req, res) => {
 const updateMyProfile = async (req, res) => {
   try {
     // Doctor can update only these fields.
-    const allowedFields = ["specialization", "experience", "hospital", "consultationFee"];
+    const allowedFields = ["specialization", "experience", "hospital", "consultationFee", "phone"];
     const updates = {};
 
     allowedFields.forEach((field) => {
@@ -226,7 +259,7 @@ const updateMyProfile = async (req, res) => {
 
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({
-        message: "No valid fields provided. Allowed: specialization, experience, hospital, consultationFee"
+        message: "No valid fields provided. Allowed: specialization, experience, hospital, consultationFee, phone"
       });
     }
 

@@ -7,6 +7,7 @@ import { doctorService } from "../../services/doctorService";
 
 const initialForm = {
   userId: "",
+  phone: "",
   specialization: "",
   experience: 0,
   hospital: "",
@@ -137,6 +138,7 @@ function CreateDoctorProfile() {
         userId: selectedAccount.id,
         name: selectedAccount.name,
         email: selectedAccount.email,
+        phone: form.phone,
         specialization: form.specialization,
         experience: Number(form.experience),
         hospital: form.hospital,
@@ -238,6 +240,17 @@ function CreateDoctorProfile() {
                 onChange={handleChange}
                 placeholder="Cardiology"
                 required
+              />
+            </label>
+
+            <label>
+              Phone Number
+              <input
+                type="text"
+                name="phone"
+                value={form.phone}
+                onChange={handleChange}
+                placeholder="9477XXXXXXX"
               />
             </label>
 
