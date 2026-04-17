@@ -19,9 +19,9 @@ import Document from "../pages/patient/Document";
 import BookAppointment from "../pages/patient/BookAppointment";
 import MyAppointments from "../pages/patient/MyAppointments";
 import PatientPayments from "../pages/patient/PatientPayments";
-import PatientProfile from "../pages/patient/PatientProfile";
-import PatientReports from "../pages/patient/PatientReports";
-import PatientPrescriptions from "../pages/patient/PatientPrescriptions";
+// import PatientProfile from "../pages/patient/PatientProfile";
+// import PatientReports from "../pages/patient/PatientReports";
+// import PatientPrescriptions from "../pages/patient/PatientPrescriptions";
 import DoctorDashboard from "../pages/doctor/DoctorDashboard";
 import DoctorProfile from "../pages/doctor/DoctorProfile";
 import DoctorAvailability from "../pages/doctor/DoctorAvailability";
@@ -99,11 +99,11 @@ export default function AppRouter() {
             <Route path="/patient/ai-chat" element={<AiChat />} />
             <Route path="/patient/directory" element={<Directory />} />
             <Route path="/patient/documents" element={<Document />} />
-            <Route path="/patient/reports" element={<PatientReports />} />
-            <Route
+            {/* <Route path="/patient/reports" element={<PatientReports />} /> */}
+            {/* <Route
               path="/patient/prescriptions"
               element={<PatientPrescriptions />}
-            />
+            /> */}
           </Route>
 
           <Route element={<RoleGuard allowedRoles={["DOCTOR"]} />}>
@@ -149,3 +149,4 @@ export default function AppRouter() {
     </Routes>
   );
 }
+

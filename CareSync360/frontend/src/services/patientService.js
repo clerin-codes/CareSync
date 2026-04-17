@@ -98,3 +98,70 @@ export const getMyAppointments = async () => {
   const { data } = await api.get("/patients/me/appointments");
   return data;
 };
+
+export const getMyReports = async () => {
+  const { data } = await api.get("/patients/me/reports");
+  return data;
+};
+
+export const uploadMyReport = async (formData) => {
+  const { data } = await api.post("/patients/me/reports", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return data;
+};
+
+export const downloadReport = async (reportId) => {
+  const response = await api.get(`/reports/${reportId}/download`, {
+    responseType: "blob",
+  });
+  return response.data;
+};
+
+export const getReportsByPatient = async (patientId) => {
+  const { data } = await api.get(`/patients/${patientId}/reports`);
+  return data;
+};
+
+export const getDoctorPrescriptions = async (params = {}) => {
+  const { data } = await api.get("/patients/doctor/prescriptions", { params });
+  return data;
+};
+
+export const issuePrescription = async (payload) => {
+  const { data } = await api.post("/patients/doctor/prescriptions", payload);
+  return data;
+};
+
+export const getMyPrescriptions = async () => {
+  const { data } = await api.get("/patients/me/prescriptions");
+  return data;
+};
+
+export const patientService = {
+  getMyProfile,
+  createMyProfile,
+  updateMyProfile,
+  uploadMyAvatar,
+  getMyDashboard,
+  getMyDocuments,
+  uploadMyDocument,
+  deleteMyDocument,
+  getAllPatients,
+  updatePatientStatus,
+  createEmergencyRequest,
+  aiExplain,
+  getAllMedicalHistory,
+  getAllDoctors,
+  getAllHospitals,
+  getMyAppointments,
+  getMyReports,
+  uploadMyReport,
+  downloadReport,
+  getReportsByPatient,
+  getDoctorPrescriptions,
+  issuePrescription,
+  getMyPrescriptions,
+};
