@@ -73,6 +73,19 @@ const sampleDoctors = [
 async function seedDoctors() {
   try {
     let adminToken;
+
+    const getDoctorUserIdByEmail = async (email) => {
+      const response = await axios.get(`${API_BASE}/auth/doctor-accounts`, {
+        headers: { Authorization: `Bearer ${adminToken}` }
+      });
+
+      const accounts = Array.isArray(response.data) ? response.data : [];
+      const match = accounts.find(
+        (account) => (account.email || "").toLowerCase() === email.toLowerCase()
+      );
+
+      return match?.id || null;
+    };
     
     console.log('Creating/Getting admin account...');
     try {
@@ -103,22 +116,40 @@ async function seedDoctors() {
     
     for (const doctor of sampleDoctors) {
       try {
-        // Create doctor account
-        const doctorAccountResponse = await axios.post(`${API_BASE}/auth/create-doctor`, {
-          name: doctor.name,
-          email: doctor.email,
-          password: doctor.password
-        }, {
-          headers: { Authorization: `Bearer ${adminToken}` }
-        });
+        let userId = null;
 
-        const userId = doctorAccountResponse.data.user.id;
+        // Create doctor account
+        try {
+          const doctorAccountResponse = await axios.post(`${API_BASE}/auth/create-doctor`, {
+            name: doctor.name,
+            email: doctor.email,
+            password: doctor.password
+          }, {
+            headers: { Authorization: `Bearer ${adminToken}` }
+          });
+
+          userId = doctorAccountResponse.data.user.id;
+        } catch (accountError) {
+          if (
+            accountError.response?.status === 400 &&
+            accountError.response?.data?.message?.includes('already in use')
+          ) {
+            userId = await getDoctorUserIdByEmail(doctor.email);
+          } else {
+            throw accountError;
+          }
+        }
+
+        if (!userId) {
+          throw new Error(`Unable to resolve userId for ${doctor.email}`);
+        }
 
         // Create doctor profile
         await axios.post(`${API_BASE}/doctors`, {
           userId: userId,
           name: doctor.name,
           email: doctor.email,
+          phone: "",
           specialization: doctor.specialization,
           experience: doctor.experience,
           hospital: doctor.hospital,
@@ -130,7 +161,11 @@ async function seedDoctors() {
 
         console.log(`✓ Created doctor: ${doctor.name} (${doctor.specialization})`);
       } catch (error) {
-        if (error.response?.status === 400 && error.response?.data?.message?.includes('already exists')) {
+        if (
+          error.response?.status === 400 &&
+          (error.response?.data?.message?.includes('already exists') ||
+            error.response?.data?.message?.includes('already exists for this userId'))
+        ) {
           console.log(`- Doctor ${doctor.name} already exists, skipping...`);
         } else {
           console.error(`✗ Failed to create doctor ${doctor.name}:`, error.response?.data?.message || error.message);

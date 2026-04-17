@@ -197,6 +197,12 @@ const createDoctorProfile = async (req, res) => {
       doctor
     });
   } catch (error) {
+    console.error("Doctor profile creation failed:", {
+      message: error.message,
+      code: error.code,
+      keyValue: error.keyValue,
+      errors: error.errors
+    });
     return res.status(500).json({ message: "Server error while creating doctor profile" });
   }
 };

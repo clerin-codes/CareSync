@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const morgan = require("morgan");
 const doctorRoutes = require("./routes/doctorRoutes");
+const Doctor = require("./models/Doctor");
 
 dotenv.config();
 
@@ -30,6 +31,11 @@ const startServer = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
     console.log("Doctor service connected to MongoDB");
+
+    // Remove stale indexes left from older schema versions (for example doctorId_1)
+    // and keep only indexes defined by the current model.
+    await Doctor.syncIndexes();
+    console.log("Doctor service indexes synchronized");
 
     const PORT = process.env.PORT || 4002;
     app.listen(PORT, () => {

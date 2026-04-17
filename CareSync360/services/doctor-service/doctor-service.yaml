@@ -10,5 +10,5 @@ services:
       - "4002:4002"
     environment:
       PORT: 4002
-      MONGO_URI: mongodb+srv://thuverakantharma_db_user:1234ABC@careline360.jumdxls.mongodb.net/CareLine360
+      MONGO_URI: mongodb+srv://thuverakantharma_db_user:1234ABC@careline360.jumdxls.mongodb.net/CareLine360-DS
       JWT_SECRET: thuve

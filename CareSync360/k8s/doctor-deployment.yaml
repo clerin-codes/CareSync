@@ -24,7 +24,7 @@ spec:
             - name: PORT
               value: "4002"
             - name: MONGO_URI
-              value: "mongodb+srv://thuverakantharma_db_user:1234ABC@careline360.jumdxls.mongodb.net/CareLine360"
+              value: "mongodb+srv://thuverakantharma_db_user:1234ABC@careline360.jumdxls.mongodb.net/CareLine360-DS"
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
