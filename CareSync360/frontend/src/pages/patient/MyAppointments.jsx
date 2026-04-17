@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import Dialog from "../../components/ui/Dialog";
 import EmptyState from "../../components/EmptyState";
 import Loader from "../../components/Loader";
 import PageHeader from "../../components/PageHeader";
@@ -10,6 +11,12 @@ import { appointmentService } from "../../services/appointmentService";
 import { paymentService } from "../../services/paymentService";
 
 const statusOptions = ["ALL", "PENDING", "ACCEPTED", "REJECTED", "CANCELLED", "COMPLETED"];
+
+const getTodayLocalDate = () => {
+  const now = new Date();
+  const localDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+  return localDate.toISOString().slice(0, 10);
+};
 
 const formatDate = (value) => {
   if (!value) return "-";
@@ -38,6 +45,9 @@ function MyAppointments() {
   const [success, setSuccess] = useState("");
   const [editingId, setEditingId] = useState("");
   const [editForm, setEditForm] = useState({ appointmentDate: "", timeSlot: "", reason: "" });
+  const [confirmCancelId, setConfirmCancelId] = useState("");
+  const [cancelling, setCancelling] = useState(false);
+  const minBookingDate = useMemo(() => getTodayLocalDate(), []);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -179,20 +189,34 @@ function MyAppointments() {
     }
   };
 
-  const cancelAppointment = async (appointmentId) => {
+  const requestCancel = (appointmentId) => {
+    setConfirmCancelId(appointmentId);
+  };
+
+  const closeCancelDialog = () => {
+    if (cancelling) return;
+    setConfirmCancelId("");
+  };
+
+  const confirmCancel = async () => {
+    if (!confirmCancelId) return;
     setError("");
     setSuccess("");
+    setCancelling(true);
 
     try {
-      await appointmentService.cancelMyAppointment(appointmentId);
+      await appointmentService.cancelMyAppointment(confirmCancelId);
       const message = "Appointment cancelled successfully.";
       setSuccess(message);
       toast.success("Appointment cancelled", message);
+      setConfirmCancelId("");
       loadData();
     } catch (err) {
       const message = err.response?.data?.message || "Failed to cancel appointment.";
       setError(message);
       toast.error("Cancellation failed", message);
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -301,6 +325,7 @@ function MyAppointments() {
                       <input
                         type="date"
                         value={editForm.appointmentDate}
+                        min={minBookingDate}
                         onChange={(event) =>
                           setEditForm((prev) => ({ ...prev, appointmentDate: event.target.value }))
                         }
@@ -341,7 +366,7 @@ function MyAppointments() {
                         <button
                           type="button"
                           className="btn btn-outline"
-                          onClick={() => cancelAppointment(appointment._id)}
+                          onClick={() => requestCancel(appointment._id)}
                         >
                           Cancel
                         </button>
@@ -356,7 +381,7 @@ function MyAppointments() {
                         <button
                           type="button"
                           className="btn btn-outline"
-                          onClick={() => cancelAppointment(appointment._id)}
+                          onClick={() => requestCancel(appointment._id)}
                         >
                           Cancel
                         </button>
@@ -389,6 +414,33 @@ function MyAppointments() {
           })}
         </div>
       ) : null}
+
+      <Dialog
+        open={Boolean(confirmCancelId)}
+        title="Cancel appointment?"
+        description="This will release your reserved slot. This action cannot be undone."
+        onClose={closeCancelDialog}
+        actions={
+          <>
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={closeCancelDialog}
+              disabled={cancelling}
+            >
+              Keep Appointment
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={confirmCancel}
+              disabled={cancelling}
+            >
+              {cancelling ? "Cancelling..." : "Confirm Cancellation"}
+            </button>
+          </>
+        }
+      />
     </section>
   );
 }

@@ -1,0 +1,9 @@
+{
+  "name": "caresync-scripts",
+  "version": "1.0.0",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "dotenv": "^16.4.5",
+    "mongoose": "^8.5.1"
+  }
+}

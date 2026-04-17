@@ -209,7 +209,23 @@ function PatientPayments() {
                   </div>
                   <div>
                     <span>Transaction</span>
-                    <strong>{payment?.transactionRef || payment?.stripePaymentIntentId || "Pending"}</strong>
+                    {(() => {
+                      const ref = payment?.transactionRef || payment?.stripePaymentIntentId || "Pending";
+                      return (
+                        <strong
+                          title={ref}
+                          style={{
+                            display: "block",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            maxWidth: "100%"
+                          }}
+                        >
+                          {ref}
+                        </strong>
+                      );
+                    })()}
                   </div>
                   <div>
                     <span>Updated</span>

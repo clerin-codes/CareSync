@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import PageHeader from "../../components/PageHeader";
 import { appointmentService } from "../../services/appointmentService";
 import { doctorService } from "../../services/doctorService";
+import { formatCurrency } from "../../utils/formatters";
 
 const getTodayLocalDate = () => {
   const now = new Date();
@@ -174,7 +175,7 @@ function BookAppointment() {
                 value={form.doctorProfileId}
                 onChange={handleChange}
                 required
-                disabled={loadingDoctors}
+                disabled={loadingDoctors || saving}
               >
                 <option value="">
                   {loadingDoctors ? "Loading doctors..." : "Select a doctor"}
@@ -196,6 +197,7 @@ function BookAppointment() {
                 onChange={handleChange}
                 min={minBookingDate}
                 required
+                disabled={saving}
               />
             </label>
 
@@ -223,6 +225,8 @@ function BookAppointment() {
                       className={`slot-chip ${form.timeSlot === slot ? "slot-chip--active" : ""}`}
                       onClick={() => selectSlot(slot)}
                       aria-pressed={form.timeSlot === slot}
+                      aria-label={`Select time slot ${slot}`}
+                      disabled={saving}
                     >
                       {slot}
                     </button>
@@ -240,6 +244,8 @@ function BookAppointment() {
                 rows="4"
                 placeholder="Describe symptoms, concerns, or what you want to discuss"
                 required
+                disabled={saving}
+                maxLength={500}
               />
             </label>
           </div>
@@ -287,7 +293,7 @@ function BookAppointment() {
               <div className="booking-summary-row">
                 <span className="booking-summary-label">Consultation Fee</span>
                 <span className={selectedDoctor ? "booking-summary-value" : "booking-summary-value booking-summary-value--muted"}>
-                  {selectedDoctor ? `LKR ${selectedDoctor.consultationFee || 0}` : "Not available"}
+                  {selectedDoctor ? formatCurrency(selectedDoctor.consultationFee, "LKR") : "Not available"}
                 </span>
               </div>
             </div>
