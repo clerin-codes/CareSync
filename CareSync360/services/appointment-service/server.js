@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const morgan = require("morgan");
 const appointmentRoutes = require("./routes/appointmentRoutes");
+const ratingRoutes = require("./routes/ratingRoutes");
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/appointments", appointmentRoutes);
+app.use("/ratings", ratingRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
