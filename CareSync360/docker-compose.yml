@@ -1,4 +1,12 @@
 services:
+  mongo:
+    image: mongo:7
+    container_name: caresync-mongo
+    ports:
+      - "27018:27017"
+    volumes:
+      - caresync-mongo-data:/data/db
+
   auth-service:
     build:
       context: ./services/auth-service
@@ -11,6 +19,8 @@ services:
     volumes:
       - ./services/auth-service:/app
       - /app/node_modules
+    depends_on:
+      - mongo
 
   doctor-service:
     build:
@@ -24,6 +34,8 @@ services:
     volumes:
       - ./services/doctor-service:/app
       - /app/node_modules
+    depends_on:
+      - mongo
 
   appointment-service:
     build:
@@ -38,6 +50,7 @@ services:
       - ./services/appointment-service:/app
       - /app/node_modules
     depends_on:
+      - mongo
       - doctor-service
 
   patient-service:
@@ -53,6 +66,7 @@ services:
       - ./services/patient-service:/app
       - /app/node_modules
     depends_on:
+      - mongo
       - appointment-service
 
   payment-service:
@@ -68,6 +82,7 @@ services:
       - ./services/payment-service:/app
       - /app/node_modules
     depends_on:
+      - mongo
       - appointment-service
 
   notification-service:
@@ -124,3 +139,6 @@ services:
       - /app/node_modules
     depends_on:
       - gateway
+
+volumes:
+  caresync-mongo-data:
